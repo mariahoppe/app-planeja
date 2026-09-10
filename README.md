@@ -71,14 +71,6 @@ mesmo tempo, no mesmo VS Code:
 3. Nunca edite `base-professor/`. Ele fica intacto para continuar servindo de consulta e
    para conseguirmos mostrar o que mudamos em relação à base.
 
-## Equipe
-
-| Integrante | Responsável por |
-| --- | --- |
-| **Maria Hoppe** | Roteiros · Grupos e despesas · Arquitetura e navegação |
-| **Mario Neto** | Destinos · Ranking · API e infraestrutura |
-| **Ana Vitória** | Atividades · Dicas · Interface e imagens |
-
 ---
 
 <div align="center">
