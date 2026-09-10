@@ -1,80 +1,75 @@
 <div align="center">
 
-# 🧭 Planeja · Mobile
+# 🧭 Planeja · Repositório da disciplina
 
-**Organize suas viagens: roteiros, destinos e atividades no bolso — com dicas da comunidade, ranking de custo-benefício e grupos com divisão de despesas.**
+**Dois projetos lado a lado: o app que estamos construindo e o app base do professor,
+usado como referência.**
 
-![Expo](https://img.shields.io/badge/Expo-SDK%2057-000?logo=expo&logoColor=fff)
-![React Native](https://img.shields.io/badge/React%20Native-0.86-61DAFB?logo=react&logoColor=000)
-![pnpm](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=fff)
+Disciplina de **Desenvolvimento de Dispositivos Móveis** — 6º semestre de Sistemas de Informação
 
 </div>
 
 ---
 
-## Sobre
+## O que tem aqui
 
-Aplicativo mobile multiplataforma (Android e iOS) para planejar viagens. É a evolução do
-projeto **Planeja Web** para o celular, reaproveitando a mesma API (Node/Express/MySQL).
-Projeto da disciplina de **Desenvolvimento de Dispositivos Móveis** — 6º semestre de
-Sistemas de Informação.
-
-## Funcionalidades
-
-Seis cadastros completos (criar, listar, editar e excluir) mais as funções de conta:
-
-| Cadastro | Descrição | Origem |
+| Pasta | O que é | Mexemos? |
 | --- | --- | --- |
-| **Destinos** | Países e cidades que o usuário quer visitar | Herdado do web |
-| **Roteiros** | O plano de uma viagem: datas, status e dias | Herdado do web |
-| **Atividades** | O que fazer em cada dia do roteiro | Herdado do web |
-| **Dicas** | Relatos por destino (onde comer, o que fazer…) com fotos | Novo |
-| **Ranking** | Custo-benefício de países e cidades por avaliações | Novo |
-| **Grupos** | Viagem compartilhada com despesas e acerto de contas | Novo |
+| [`planeja/`](./planeja/) | **Nosso app.** O Planeja Mobile, em React Native + Expo. É aqui que todo o nosso código vive. | ✅ Sim |
+| [`base-professor/`](./base-professor/) | **App base do professor**, apresentado em aula. Serve de referência para navegação, telas e chamadas à API. | ❌ Não — só consulta |
+| [`docs/`](./docs/) | Documento de escopo do Planeja (PDF). | — |
 
-Mais: login, cadastro, recuperação de senha e perfil, com sessão mantida no dispositivo.
+As duas pastas são **projetos Expo independentes**: cada uma tem seu próprio
+`package.json` e suas próprias dependências. Instalar ou rodar um não afeta o outro.
 
-## Tecnologias
-
-- **React Native + Expo** — app nativo a partir de uma base de código em JavaScript
-- **React Navigation** — abas inferiores + navegação em pilha
-- **Axios** — cliente HTTP com instância única e token automático
-- **API** — Node/Express/MySQL, reaproveitada do projeto web ([repositório separado](https://github.com/mariahoppe/app-planeja))
+```
+app-planeja/
+├─ README.md            ← você está aqui
+├─ docs/                 documento de escopo
+├─ planeja/             ← NOSSO app  (cd planeja && pnpm start)
+│  ├─ App.js
+│  ├─ package.json
+│  └─ src/
+│     ├─ api/  config/  navigation/  contexts/  components/  hooks/  utils/
+│     └─ features/       destinos · roteiros · atividades · dicas · ranking · grupos · auth
+└─ base-professor/      ← app do professor (referência)
+```
 
 ## Como rodar
 
-**Pré-requisitos:** [Node.js](https://nodejs.org) 20+, [pnpm](https://pnpm.io) e o app
-**Expo Go** no seu celular ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) · [iOS](https://apps.apple.com/app/expo-go/id982107779)).
+Escolha o projeto e trabalhe **de dentro da pasta dele** — os comandos do Expo precisam
+enxergar o `package.json` correto.
 
 ```bash
-# 1. Instale as dependências
+# nosso app
+cd planeja
 pnpm install
+pnpm start
 
-# 2. Configure o ambiente (aponte para o IP da sua máquina na rede local)
-cp .env.example .env
-
-# 3. Inicie o projeto
+# app do professor
+cd base-professor
+pnpm install
 pnpm start
 ```
 
-Leia o QR Code com o app Expo Go e o Planeja abre no seu celular.
+Leia o QR Code com o **Expo Go** no celular
+([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) ·
+[iOS](https://apps.apple.com/app/expo-go/id982107779)).
 
-## Estrutura
+> **Atenção à versão do Expo.** O Planeja usa **SDK 54**, que é o que o Expo Go
+> publicado nas lojas suporta hoje. Subir de SDK sem que o Expo Go acompanhe faz o QR
+> Code falhar com *"Project is incompatible with this version of Expo Go"*.
 
-O código é organizado **por domínio**: cada funcionalidade guarda tudo o que é seu
-(telas, componentes, serviços e hooks) numa pasta em `src/features/`.
+## Como usar o projeto do professor de base
 
-```
-src/
-├─ api/          # cliente Axios (instância única, token)
-├─ config/       # tema (identidade Planeja) e variáveis de ambiente
-├─ navigation/   # abas e navegação em pilha
-├─ contexts/     # estado global (autenticação/sessão)
-├─ components/   # UI compartilhada entre telas
-├─ hooks/        # hooks reutilizáveis
-├─ utils/        # funções puras (moeda, datas, acerto de contas)
-└─ features/     # um diretório por domínio (os 6 CRUDs + conta)
-```
+A ideia de manter os dois no mesmo repositório é poder abrir o código dele e o nosso ao
+mesmo tempo, no mesmo VS Code:
+
+1. Achou um trecho útil no app dele (uma tela, um serviço, a configuração de navegação)?
+2. **Copie para `planeja/`** e adapte para o nosso domínio — nossos nomes, nosso tema
+   (`planeja/src/config/theme.js`), nossa estrutura por funcionalidade.
+3. Nunca edite `base-professor/`. Ele fica intacto para continuar servindo de consulta e
+   para conseguirmos mostrar o que mudamos em relação à base.
 
 ## Equipe
 
@@ -87,5 +82,5 @@ src/
 ---
 
 <div align="center">
-<sub>Documento de escopo completo em <a href="./docs/EscopoPlanejaMobile.pdf"><code>docs/</code></a> · Entrega: 17 de dezembro de 2026</sub>
+<sub>Detalhes do nosso app em <a href="./planeja/README.md"><code>planeja/README.md</code></a> · Entrega: 17 de dezembro de 2026</sub>
 </div>
