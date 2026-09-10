@@ -79,14 +79,6 @@ src/
 └─ features/     # um diretório por domínio (os 6 CRUDs + conta)
 ```
 
-## Equipe
-
-| Integrante | Responsável por |
-| --- | --- |
-| **Maria Hoppe** | Roteiros · Grupos e despesas · Arquitetura e navegação |
-| **Mario Neto** | Destinos · Ranking · API e infraestrutura |
-| **Ana Vitória** | Atividades · Dicas · Interface e imagens |
-
 ---
 
 <div align="center">
