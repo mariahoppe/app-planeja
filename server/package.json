@@ -1,0 +1,58 @@
+{
+  "name": "planeja-server",
+  "version": "2.0.0",
+  "description": "Planeja · API do aplicativo mobile de organização de viagens",
+  "keywords": [
+    "planeja",
+    "travel",
+    "itinerary",
+    "nodejs",
+    "express",
+    "sequelize",
+    "supabase"
+  ],
+  "homepage": "https://github.com/mariahoppe/app-planeja#readme",
+  "bugs": {
+    "url": "https://github.com/mariahoppe/app-planeja/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariahoppe/app-planeja.git",
+    "directory": "server"
+  },
+  "license": "ISC",
+  "author": "mariahoppe",
+  "type": "commonjs",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch",
+    "db:migrate": "sequelize-cli db:migrate",
+    "db:migrate:undo": "sequelize-cli db:migrate:undo",
+    "db:seed": "sequelize-cli db:seed:all",
+    "db:seed:undo": "sequelize-cli db:seed:undo:all",
+    "db:reset": "sequelize-cli db:migrate:undo:all && sequelize-cli db:migrate && sequelize-cli db:seed:all"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "joi": "^17.13.1",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^8.0.11",
+    "pg": "^8.13.1",
+    "pg-hstore": "^2.3.4",
+    "sequelize": "^6.37.3"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "nodemon": "^3.1.0",
+    "sequelize-cli": "^6.6.2",
+    "supertest": "^7.0.0"
+  }
+}
