@@ -10,6 +10,7 @@ export const colors = {
   papel: '#FAF8F3', // fundo das telas
   linha: '#D8D4CC', // bordas e divisórias
   branco: '#FFFFFF',
+  erroFundo: '#FDF7F4', // fundo de campo com erro de validação
 };
 
 // Cada peso é uma família separada: com fontes carregadas em tempo de execução,

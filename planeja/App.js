@@ -1,6 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
 import Button from './src/components/atoms/Button';
+import { Input } from './src/components/atoms/Input';
 import { colors, fonts, spacing } from './src/config/theme';
 import useFontesPlaneja from './src/hooks/useFontesPlaneja';
 
@@ -16,6 +17,8 @@ export default function App() {
       <Text style={styles.titulo}>Planeja</Text>
       <Text style={styles.texto}>Cinco dias · três atividades por dia</Text>
       <Text style={styles.valor}>01 · R$ 2.400,00</Text>
+      <Input placeholder="Buscar destino · ex: Paris" />
+      <Input placeholder="Horário" defaultValue="25:99" erro />
       <Button titulo="Entrar" variante="primario" onPress={() => console.log('clicou no primário')} />
       <Button titulo="Criar conta" onPress={() => console.log('clicou no secundário')} />
       <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => console.log('clicou no bloco')} />
