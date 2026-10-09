@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
-import Button from './src/components/atoms/Button';
+import { Button } from './src/components/atoms/Button';
 import { Input } from './src/components/atoms/Input';
 import { colors, fonts, spacing } from './src/config/theme';
 import useFontesPlaneja from './src/hooks/useFontesPlaneja';
@@ -23,6 +23,8 @@ export default function App() {
       <Button titulo="Criar conta" onPress={() => console.log('clicou no secundário')} />
       <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => console.log('clicou no bloco')} />
       <Button titulo="Editar" pequeno onPress={() => console.log('clicou no pequeno')} />
+      <Button titulo="Salvar" variante="primario" carregando onPress={() => console.log('não deve aparecer')} />
+      <Button titulo="Excluir" desabilitado onPress={() => console.log('não deve aparecer')} />
       <StatusBar style="auto" />
     </View>
   );

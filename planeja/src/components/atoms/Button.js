@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text } from 'react-native';
 import { colors, fonts, radius } from '../../config/theme';
 
 /**
@@ -6,25 +6,44 @@ import { colors, fonts, radius } from '../../config/theme';
  * variante: 'primario' (ação principal da tela) ou 'secundario' (demais ações).
  * bloco: ocupa toda a largura disponível.
  * pequeno: versão compacta, para cabeçalhos e títulos de seção.
+ * carregando: troca o texto por um indicador e bloqueia o toque (ex.: enquanto a API responde).
+ * desabilitado: bloqueia o toque.
  */
-export default function Button({ titulo, onPress, variante = 'secundario', bloco = false, pequeno = false }) {
+export function Button({
+  titulo,
+  onPress,
+  variante = 'secundario',
+  bloco = false,
+  pequeno = false,
+  carregando = false,
+  desabilitado = false,
+  style,
+}) {
   const primario = variante === 'primario';
+  const inativo = desabilitado || carregando;
 
   return (
     <Pressable
       onPress={onPress}
+      disabled={inativo}
       accessibilityRole="button"
       style={({ pressed }) => [
         styles.base,
         primario ? styles.primario : styles.secundario,
         pequeno && styles.pequeno,
         bloco && styles.bloco,
-        pressed && styles.pressionado,
+        pressed && !inativo && styles.pressionado,
+        inativo && styles.inativo,
+        style,
       ]}
     >
-      <Text style={[styles.texto, primario && styles.textoPrimario, pequeno && styles.textoPequeno]}>
-        {titulo}
-      </Text>
+      {carregando ? (
+        <ActivityIndicator color={primario ? colors.branco : colors.tinta} />
+      ) : (
+        <Text style={[styles.texto, primario && styles.textoPrimario, pequeno && styles.textoPequeno]}>
+          {titulo}
+        </Text>
+      )}
     </Pressable>
   );
 }
@@ -58,6 +77,9 @@ const styles = StyleSheet.create({
   },
   pressionado: {
     opacity: 0.85,
+  },
+  inativo: {
+    opacity: 0.5,
   },
   texto: {
     fontFamily: fonts.corpoSemi,
