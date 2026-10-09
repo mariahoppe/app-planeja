@@ -12,9 +12,18 @@ export const colors = {
   branco: '#FFFFFF',
 };
 
+// Cada peso é uma família separada: com fontes carregadas em tempo de execução,
+// o fontWeight não troca de arquivo. Os nomes são os carregados em hooks/useFontesPlaneja.
 export const fonts = {
-  titulo: 'Fraunces', // títulos de tela, nomes de destino, a marca
-  corpo: 'SourceSans3', // textos, rótulos, formulários e navegação
+  titulo: 'Fraunces_400Regular', // títulos de tela, nomes de destino, a marca
+  tituloMedio: 'Fraunces_500Medium',
+  corpo: 'SourceSans3_400Regular', // textos, rótulos, formulários e navegação
+  corpoMedio: 'SourceSans3_500Medium',
+  corpoSemi: 'SourceSans3_600SemiBold',
+  corpoForte: 'SourceSans3_700Bold',
+  mono: 'JetBrainsMono_400Regular', // números: valores, posição no ranking, códigos de convite
+  monoMedio: 'JetBrainsMono_500Medium',
+  monoForte: 'JetBrainsMono_700Bold',
 };
 
 export const spacing = {
