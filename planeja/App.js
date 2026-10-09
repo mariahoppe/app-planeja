@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text, View } from 'react-native';
-import Button from './src/components/Button';
+import Button from './src/components/atoms/Button';
 import { colors, fonts, spacing } from './src/config/theme';
 import useFontesPlaneja from './src/hooks/useFontesPlaneja';
 

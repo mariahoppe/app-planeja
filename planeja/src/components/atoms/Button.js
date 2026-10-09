@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, fonts, radius } from '../config/theme';
+import { colors, fonts, radius } from '../../config/theme';
 
 /**
  * Botão padrão do Planeja.
