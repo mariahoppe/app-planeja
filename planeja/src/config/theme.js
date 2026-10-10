@@ -7,6 +7,7 @@ export const colors = {
   acento: '#8A3A1F', // ações principais, posição no ranking, destaques
   tinta: '#1A1A1A', // texto principal
   suave: '#6B6B6B', // texto secundário
+  tenue: '#9A9A9A', // dicas de campo e títulos de seção
   papel: '#FAF8F3', // fundo das telas
   linha: '#D8D4CC', // bordas e divisórias
   branco: '#FFFFFF',
