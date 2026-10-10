@@ -1,10 +1,13 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Button } from './src/components/atoms/Button';
 import { FormField } from './src/components/molecules/FormField';
-import { colors, fonts, spacing } from './src/config/theme';
+import { ScreenTemplate } from './src/components/templates/ScreenTemplate';
+import { colors, fonts } from './src/config/theme';
 import useFontesPlaneja from './src/hooks/useFontesPlaneja';
 
+// Bancada de teste dos componentes base. Será substituída pela navegação do app.
 export default function App() {
   const fontesProntas = useFontesPlaneja();
 
@@ -13,38 +16,31 @@ export default function App() {
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.titulo}>Planeja</Text>
-      <Text style={styles.texto}>Cinco dias · três atividades por dia</Text>
-      <Text style={styles.valor}>01 · R$ 2.400,00</Text>
-      <FormField label="O que fazer" placeholder="Museu do Louvre" />
-      <FormField label="Custo previsto" placeholder="0" keyboardType="numeric" dica="Deixe zero para atividades gratuitas" />
-      <FormField label="Horário" defaultValue="25:99" erro="Use o formato 14:30" />
-      <Button titulo="Entrar" variante="primario" onPress={() => console.log('clicou no primário')} />
-      <Button titulo="Criar conta" onPress={() => console.log('clicou no secundário')} />
-      <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => console.log('clicou no bloco')} />
-      <Button titulo="Editar" pequeno onPress={() => console.log('clicou no pequeno')} />
-      <Button titulo="Salvar" variante="primario" carregando onPress={() => console.log('não deve aparecer')} />
-      <Button titulo="Excluir" desabilitado onPress={() => console.log('não deve aparecer')} />
-      <StatusBar style="auto" />
-    </View>
+    <SafeAreaProvider>
+      <ScreenTemplate
+        sobretitulo="Componentes"
+        titulo="Planeja"
+        aoVoltar={() => console.log('voltar')}
+        direita={<Button titulo="Editar" pequeno onPress={() => console.log('clicou no pequeno')} />}
+      >
+        <Text style={styles.texto}>Cinco dias · três atividades por dia</Text>
+        <Text style={styles.valor}>01 · R$ 2.400,00</Text>
+        <FormField label="O que fazer" placeholder="Museu do Louvre" />
+        <FormField label="Custo previsto" placeholder="0" keyboardType="numeric" dica="Deixe zero para atividades gratuitas" />
+        <FormField label="Horário" defaultValue="25:99" erro="Use o formato 14:30" />
+        <FormField label="Local" placeholder="Rue de Rivoli" />
+        <FormField label="Link (opcional)" placeholder="https://..." dica="Onde a atividade foi comprada" />
+        <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => console.log('clicou no primário')} />
+        <Button titulo="Criar conta" bloco onPress={() => console.log('clicou no secundário')} />
+        <Button titulo="Salvar" variante="primario" bloco carregando onPress={() => console.log('não deve aparecer')} />
+        <Button titulo="Excluir" bloco desabilitado onPress={() => console.log('não deve aparecer')} />
+      </ScreenTemplate>
+      <StatusBar style="dark" />
+    </SafeAreaProvider>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.papel,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-  },
-  titulo: {
-    fontFamily: fonts.tituloMedio,
-    fontSize: 27,
-    color: colors.tinta,
-  },
   texto: {
     fontFamily: fonts.corpo,
     fontSize: 15,

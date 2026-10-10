@@ -10,6 +10,7 @@ export const colors = {
   tenue: '#9A9A9A', // dicas de campo e títulos de seção
   papel: '#FAF8F3', // fundo das telas
   linha: '#D8D4CC', // bordas e divisórias
+  linhaSuave: '#EBE8E1', // divisória do cabeçalho das telas
   branco: '#FFFFFF',
   erroFundo: '#FDF7F4', // fundo de campo com erro de validação
 };
