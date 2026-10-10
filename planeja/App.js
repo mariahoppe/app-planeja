@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Button } from './src/components/atoms/Button';
+import { Card } from './src/components/atoms/Card';
 import { FormField } from './src/components/molecules/FormField';
 import { ScreenTemplate } from './src/components/templates/ScreenTemplate';
 import { colors, fonts } from './src/config/theme';
@@ -34,6 +35,13 @@ export default function App() {
         <Button titulo="Criar conta" bloco onPress={() => console.log('clicou no secundário')} />
         <Button titulo="Salvar" variante="primario" bloco carregando onPress={() => console.log('não deve aparecer')} />
         <Button titulo="Excluir" bloco desabilitado onPress={() => console.log('não deve aparecer')} />
+        <Card onPress={() => console.log('abriu o card')}>
+          <Text style={styles.texto}>Paris</Text>
+          <Text style={styles.valor}>3 fotos · ler dica ›</Text>
+        </Card>
+        <Card>
+          <Text style={styles.texto}>Card sem toque</Text>
+        </Card>
       </ScreenTemplate>
       <StatusBar style="dark" />
     </SafeAreaProvider>
