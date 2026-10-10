@@ -3,6 +3,7 @@ import { StyleSheet, Text } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Button } from './src/components/atoms/Button';
 import { Card } from './src/components/atoms/Card';
+import { EmptyState } from './src/components/molecules/EmptyState';
 import { FormField } from './src/components/molecules/FormField';
 import { ScreenTemplate } from './src/components/templates/ScreenTemplate';
 import { colors, fonts } from './src/config/theme';
@@ -42,6 +43,12 @@ export default function App() {
         <Card>
           <Text style={styles.texto}>Card sem toque</Text>
         </Card>
+        <EmptyState
+          titulo="Nada por aqui ainda"
+          mensagem="Nenhuma dica cadastrada para “Tóquio”. Você pode ser a primeira pessoa a publicar."
+          acao={<Button titulo="+ Publicar dica" variante="primario" onPress={() => console.log('publicar')} />}
+        />
+        <EmptyState titulo="Sem atividades" mensagem="Adicione o que fazer em cada dia da viagem." />
       </ScreenTemplate>
       <StatusBar style="dark" />
     </SafeAreaProvider>
