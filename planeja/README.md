@@ -82,5 +82,5 @@ src/
 ---
 
 <div align="center">
-<sub>Documento de escopo completo em <a href="../docs/EscopoPlanejaMobile.pdf"><code>docs/</code></a> · Projeto base do professor em <a href="../base-professor/"><code>base-professor/</code></a> · Entrega: 17 de dezembro de 2026</sub>
+<sub>Documento de escopo completo em <a href="../docs/EscopoPlanejaMobile.pdf"><code>docs/</code></a> · Entrega: 17 de dezembro de 2026</sub>
 </div>
