@@ -43,9 +43,11 @@ Variáveis necessárias:
 |---|---|
 | `DATABASE_URL` | String de conexão PostgreSQL (Supabase) |
 | `JWT_SECRET` | Chave secreta para assinar tokens JWT |
-| `JWT_EXPIRES_IN` | Tempo de expiração do token (ex: `24h`) |
+| `JWT_EXPIRES_IN` | Tempo de expiração do token (padrão: `7d`) |
 | `PORT` | Porta do servidor (padrão: 3000) |
 | `CORS_ORIGIN` | URL do frontend (padrão: `http://localhost:5173`) |
+
+> **Atenção:** a `DATABASE_URL` deve usar o **Session pooler** do Supabase, na porta **5432** (Project Settings > Database > Connection string > Session pooler). A porta 6543 (Transaction pooler) não funciona com a API.
 
 ### 3. Iniciar o servidor
 
@@ -238,7 +240,7 @@ Todas as rotas protegidas exigem o header:
 Authorization: Bearer <token>
 ```
 
-O token é retornado no login/registro e expira em 24 horas.
+O token é retornado no login/registro e expira em 7 dias.
 
 ### Ownership
 
