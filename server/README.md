@@ -47,6 +47,8 @@ Variáveis necessárias:
 | `PORT` | Porta do servidor (padrão: 3000) |
 | `CORS_ORIGIN` | URL do frontend (padrão: `http://localhost:5173`) |
 
+> **Atenção:** a `DATABASE_URL` deve usar o **Session pooler** do Supabase, na porta **5432** (Project Settings > Database > Connection string > Session pooler). A porta 6543 (Transaction pooler) não funciona com a API.
+
 ### 3. Iniciar o servidor
 
 ```bash
