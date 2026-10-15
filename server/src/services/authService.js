@@ -30,7 +30,7 @@ const registro = async ({ nome, email, senha }) => {
 };
 
 const login = async ({ email, senha }) => {
-  const usuario = await Usuario.findOne({ where: { email } });
+  const usuario = await Usuario.scope('comSenha').findOne({ where: { email } });
   if (!usuario) throw new AppError('Email ou senha incorretos', 401);
 
   const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
@@ -109,7 +109,7 @@ const esqueciSenha = async ({ email }) => {
 const redefinirSenha = async ({ token, senha }) => {
   const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
 
-  const usuario = await Usuario.findOne({
+  const usuario = await Usuario.scope('comSenha').findOne({
     where: { reset_token: tokenHash }
   });
 
