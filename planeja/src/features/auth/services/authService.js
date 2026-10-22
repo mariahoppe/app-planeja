@@ -1,5 +1,6 @@
 import { get, post } from '../../../api/api';
 import { limparSessao, salvarToken, salvarUsuario } from '../../../api/storage';
+import { limparPerfilLocal } from '../../../services/perfilLocal';
 
 /**
  * Autenticação do app contra a API real (server/):
@@ -35,6 +36,8 @@ export async function perfil() {
   return usuario;
 }
 
+// Apaga o que é da conta: token, usuário, foto e localização.
+// As preferências (services/preferencias) são do aparelho e ficam.
 export async function sair() {
-  await limparSessao();
+  await Promise.all([limparSessao(), limparPerfilLocal()]);
 }
