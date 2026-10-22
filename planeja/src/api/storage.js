@@ -1,60 +1,54 @@
 /**
- * Sessão no dispositivo: expo-secure-store no celular e localStorage no web.
+ * Sessão no dispositivo, em duas gavetas — cada dado no lugar certo:
+ *   - token   → expo-secure-store (cofre do sistema): é segredo, abre a conta
+ *   - usuario → AsyncStorage (services/armazenamentoLocal): não é segredo
+ * No web o SecureStore não existe, então o token cai no localStorage.
+ * Senha nunca é gravada.
  */
 import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+
+import { obterLocal, removerLocal, salvarLocal } from '../services/armazenamentoLocal';
 
 const CHAVE_TOKEN = 'planeja_token';
 const CHAVE_USUARIO = 'planeja_usuario';
 
 const noWeb = Platform.OS === 'web';
 
-async function setItem(chave, valor) {
-  if (noWeb) {
-    localStorage.setItem(chave, valor);
-    return;
-  }
-  await SecureStore.setItemAsync(chave, valor);
-}
-
-async function getItem(chave) {
-  if (noWeb) {
-    return localStorage.getItem(chave);
-  }
-  return SecureStore.getItemAsync(chave);
-}
-
-async function removeItem(chave) {
-  if (noWeb) {
-    localStorage.removeItem(chave);
-    return;
-  }
-  await SecureStore.deleteItemAsync(chave);
-}
+// O cofre só abre com o aparelho desbloqueado e o token não vai para backup/outro aparelho.
+const opcoesCofre = { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY };
 
 export async function salvarToken(token) {
-  await setItem(CHAVE_TOKEN, token);
+  if (noWeb) {
+    localStorage.setItem(CHAVE_TOKEN, token);
+    return;
+  }
+  await SecureStore.setItemAsync(CHAVE_TOKEN, token, opcoesCofre);
 }
 
 export async function obterToken() {
-  return getItem(CHAVE_TOKEN);
+  if (noWeb) {
+    return localStorage.getItem(CHAVE_TOKEN);
+  }
+  return SecureStore.getItemAsync(CHAVE_TOKEN);
+}
+
+async function removerToken() {
+  if (noWeb) {
+    localStorage.removeItem(CHAVE_TOKEN);
+    return;
+  }
+  await SecureStore.deleteItemAsync(CHAVE_TOKEN);
 }
 
 export async function salvarUsuario(usuario) {
-  await setItem(CHAVE_USUARIO, JSON.stringify(usuario));
+  await salvarLocal(CHAVE_USUARIO, usuario);
 }
 
 export async function obterUsuario() {
-  const raw = await getItem(CHAVE_USUARIO);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw);
-  } catch {
-    return null;
-  }
+  return obterLocal(CHAVE_USUARIO);
 }
 
 export async function limparSessao() {
-  await removeItem(CHAVE_TOKEN);
-  await removeItem(CHAVE_USUARIO);
+  await Promise.all([removerToken(), removerLocal(CHAVE_USUARIO)]);
 }
