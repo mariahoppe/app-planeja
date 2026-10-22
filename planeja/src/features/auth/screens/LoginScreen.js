@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Alert } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
@@ -13,6 +14,8 @@ export function LoginScreen({ navigation }) {
     setCarregando(true);
     try {
       await entrar('maria@planeja.app', 'planeja123');
+    } catch (erro) {
+      Alert.alert('Não foi possível entrar', erro.message);
     } finally {
       setCarregando(false);
     }
