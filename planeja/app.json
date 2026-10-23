@@ -8,7 +8,13 @@
     "userInterfaceStyle": "light",
     "backgroundColor": "#FAF8F3",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSCameraUsageDescription": "O Planeja usa a câmera para a foto do seu perfil e para fotografar lugares nas suas dicas.",
+        "NSPhotoLibraryUsageDescription": "O Planeja usa a galeria para escolher a foto do seu perfil e as fotos das suas dicas.",
+        "NSLocationWhenInUseUsageDescription": "O Planeja usa sua localização para mostrar a cidade onde você está e preencher o destino das dicas.",
+        "NSMicrophoneUsageDescription": "O Planeja não grava áudio; o sistema pode pedir isso junto com a câmera."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -16,14 +22,39 @@
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.POST_NOTIFICATIONS"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      "expo-secure-store",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ],
       "expo-font",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "O Planeja usa a câmera para a foto do seu perfil e para fotografar lugares nas suas dicas.",
+          "photosPermission": "O Planeja usa a galeria para escolher a foto do seu perfil e as fotos das suas dicas."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O Planeja usa sua localização para mostrar a cidade onde você está e preencher o destino das dicas."
+        }
+      ],
+      "expo-notifications",
       [
         "expo-splash-screen",
         {
