@@ -48,7 +48,7 @@ Leia o QR Code com o **Expo Go** no celular
 ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) ·
 [iOS](https://apps.apple.com/app/expo-go/id982107779)).
 
-> **Atenção à versão do Expo.** O Planeja usa **SDK 54**, que é o que o Expo Go
+> **Atenção à versão do Expo.** O Planeja usa **SDK 57**, que é o que o Expo Go
 > publicado nas lojas suporta hoje. Subir de SDK sem que o Expo Go acompanhe faz o QR
 > Code falhar com *"Project is incompatible with this version of Expo Go"*.
 

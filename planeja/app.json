@@ -7,11 +7,6 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "backgroundColor": "#FAF8F3",
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FAF8F3"
-    },
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
@@ -59,7 +54,16 @@
           "locationWhenInUsePermission": "O Planeja usa sua localização para mostrar a cidade onde você está e preencher o destino das dicas."
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#FAF8F3",
+          "imageWidth": 200
+        }
+      ]
     ]
   }
 }
