@@ -34,6 +34,25 @@ Seis cadastros completos (criar, listar, editar e excluir) mais as funções de 
 
 Mais: login, cadastro, recuperação de senha e perfil, com sessão mantida no dispositivo.
 
+### Recursos do aparelho
+
+| Tela | O que usa |
+| --- | --- |
+| **Perfil** (avatar no Início) | Foto pela câmera ou galeria e a cidade onde você está (GPS) — guardadas só no aparelho |
+| **Configurações** (pelo Perfil) | Preferências salvas no aparelho, situação de cada permissão e um aviso local de teste |
+
+Cada permissão é pedida na hora do uso, nunca na abertura do app.
+
+### Onde cada dado fica
+
+| Dado | Onde | No logout |
+| --- | --- | --- |
+| Token (JWT) | Cofre do sistema (`expo-secure-store`, só com o aparelho desbloqueado) | Apagado |
+| Nome e e-mail do usuário | AsyncStorage | Apagado |
+| Foto e última localização | AsyncStorage | Apagados |
+| Preferências (switches) | AsyncStorage | **Ficam** — são do aparelho, não da conta |
+| Senha | Em lugar nenhum — só viaja no corpo do login | — |
+
 ## Tecnologias
 
 - **React Native + Expo** — app nativo a partir de uma base de código em JavaScript
@@ -75,9 +94,18 @@ src/
 ├─ contexts/     # estado global (autenticação/sessão)
 ├─ components/   # UI compartilhada entre telas
 ├─ hooks/        # hooks reutilizáveis
+├─ services/     # aparelho: dados locais, preferências, perfil local e recursos nativos
 ├─ utils/        # funções puras (moeda, datas, acerto de contas)
 └─ features/     # um diretório por domínio (os 6 CRUDs + conta)
 ```
+
+## Problemas comuns
+
+- **App mostra uma versão antiga**: no Expo Go, apague o histórico (CLEAR) e abra pelo QR Code; se continuar, `pnpm start --clear`.
+- **"Não foi possível conectar ao servidor"**: API parada, IP errado no `.env` ou firewall bloqueando a porta 3000. Depois de mudar o `.env`, reinicie com `pnpm start --clear`.
+- **Aviso "expo-notifications is not fully supported in Expo Go"**: esperado. Push remoto não funciona no Expo Go; o aviso local, que o app usa, funciona.
+- **Câmera no emulador**: mostra uma cena virtual; se falhar, use **Escolher da galeria**.
+- **Localização no emulador**: defina um ponto em *Extended controls → Location → Set location*. Sem sinal, o app avisa em até 15 segundos em vez de travar.
 
 ---
 
