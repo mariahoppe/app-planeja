@@ -2,6 +2,8 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { ConfiguracoesScreen } from '../features/perfil/screens/ConfiguracoesScreen';
 import { PerfilScreen } from '../features/perfil/screens/PerfilScreen';
+import { RoteiroDetalheScreen } from '../features/roteiros/screens/RoteiroDetalheScreen';
+import { RoteiroFormScreen } from '../features/roteiros/screens/RoteiroFormScreen';
 import { AbasNavigator } from './AbasNavigator';
 
 const Stack = createNativeStackNavigator();
@@ -16,6 +18,8 @@ export function AppStack() {
       <Stack.Screen name="Abas" component={AbasNavigator} />
       <Stack.Screen name="Perfil" component={PerfilScreen} />
       <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
+      <Stack.Screen name="RoteiroDetalhe" component={RoteiroDetalheScreen} />
+      <Stack.Screen name="RoteiroForm" component={RoteiroFormScreen} />
     </Stack.Navigator>
   );
 }
