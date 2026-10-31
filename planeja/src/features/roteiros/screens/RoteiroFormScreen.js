@@ -10,7 +10,7 @@ import * as roteiroService from '../services/roteiroService';
 
 const STATUS = ['planejando', 'confirmado', 'concluido'];
 
-export function RoteiroFormScreen() {
+export function RoteiroFormScreen({ navigation }) {
     const [titulo, setTitulo] = useState('');
     const [destinoId, setDestinoId] = useState(null);
     const [inicio, setInicio] = useState('');
@@ -58,7 +58,7 @@ export function RoteiroFormScreen() {
                 obs,
             };
             await roteiroService.criar(dados);
-            Alert.alert('Pronto', 'Roteiro criado!');
+            navigation.goBack(); // volta para a lista, que recarrega sozinha
         } catch (err) {
             Alert.alert('Erro', err.message);
         } finally {
