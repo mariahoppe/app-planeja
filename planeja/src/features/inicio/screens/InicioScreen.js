@@ -3,6 +3,7 @@ import { useCallback, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 import { Avatar } from '../../../components/atoms/Avatar';
+import { Card } from '../../../components/atoms/Card';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
@@ -30,11 +31,22 @@ export function InicioScreen({ navigation }) {
       }
     >
       <Text style={styles.texto}>{usuario.email}</Text>
+
+      {/* Destinos não tem aba própria: abre pela pilha, acima das abas. */}
+      <Card onPress={() => navigation.navigate('Destinos')}>
+        <Text style={styles.cardTitulo}>Meus destinos</Text>
+        <Text style={styles.texto}>Cidades que você quer visitar, base dos roteiros.</Text>
+      </Card>
     </ScreenTemplate>
   );
 }
 
 const styles = StyleSheet.create({
+  cardTitulo: {
+    fontFamily: fonts.tituloMedio,
+    fontSize: 16,
+    color: colors.tinta,
+  },
   texto: {
     fontFamily: fonts.corpo,
     fontSize: 15,
