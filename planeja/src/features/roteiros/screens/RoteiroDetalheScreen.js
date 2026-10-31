@@ -1,67 +1,123 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
-import { EmptyState } from '../../../components/molecules/EmptyState';
+import { Button } from '../../../components/atoms/Button';
+import { CaixaResumo } from '../../../components/molecules/CaixaResumo';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
+import { AtividadeDetalhe } from '../../atividades/components/AtividadeDetalhe';
+import { ListaAtividades } from '../../atividades/components/ListaAtividades';
+import { dataBR } from '../../atividades/datas';
+import * as atividadeService from '../../atividades/services/atividadeService';
+import { moeda } from '../../inicio/formatos';
 
 export function RoteiroDetalheScreen({ route, navigation }) {
   // O roteiro chega por parâmetro, mandado pelo card da listagem.
   const { roteiro } = route.params;
 
-  const periodo = roteiro.fim
-    ? `${roteiro.inicio} — ${roteiro.fim}`
-    : `A partir de ${roteiro.inicio}`;
-  const custo = Number(roteiro.custo_total || 0).toFixed(2);
+  const [atividades, setAtividades] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
+  const [aberta, setAberta] = useState(null); // atividade mostrada no painel de detalhe
+
+  const carregar = useCallback(async () => {
+    setCarregando(true);
+    setErro(null);
+    try {
+      const lista = await atividadeService.listar(roteiro.id);
+      setAtividades(lista || []);
+    } catch (e) {
+      setErro(e.message);
+    } finally {
+      setCarregando(false);
+    }
+  }, [roteiro.id]);
+
+  // Recarrega ao voltar ao foco (ex.: depois de salvar no formulário).
+  useFocusEffect(
+    useCallback(() => {
+      carregar();
+    }, [carregar])
+  );
+
+  const alternarFeita = useCallback(async (atividade) => {
+    try {
+      const atualizada = await atividadeService.alternarFeita(atividade.id);
+      setAtividades((lista) => lista.map((a) => (a.id === atualizada.id ? atualizada : a)));
+    } catch (e) {
+      Alert.alert('Não foi possível atualizar', e.message);
+    }
+  }, []);
+
+  function editar() {
+    const atividade = aberta;
+    setAberta(null);
+    navigation.navigate('AtividadeForm', { roteiro, atividade });
+  }
+
+  const custo = atividades.reduce((soma, atividade) => soma + Number(atividade.custo), 0);
 
   return (
     <ScreenTemplate
-      sobretitulo={roteiro.destino?.cidade}
+      sobretitulo={`${roteiro.destino?.cidade} · ${roteiro.destino?.pais}`}
       titulo={roteiro.titulo}
       aoVoltar={() => navigation.goBack()}
     >
-      <View style={styles.bloco}>
-        <Text style={styles.linha}>
-          {roteiro.destino?.cidade} · {roteiro.destino?.pais}
-        </Text>
-        <Text style={styles.linha}>{periodo}</Text>
-        <Text style={styles.linha}>Status: {roteiro.status}</Text>
-        <Text style={styles.custo}>Custo previsto: R$ {custo}</Text>
+      <View style={styles.stats}>
+        <CaixaResumo rotulo="Período" valor={dataBR(roteiro.inicio)} sub={`até ${dataBR(roteiro.fim)}`} />
+        <CaixaResumo
+          rotulo="Custo previsto"
+          valor={moeda(custo)}
+          sub={`${atividades.length} ${atividades.length === 1 ? 'atividade' : 'atividades'}`}
+        />
       </View>
 
-      {/* ==========================================================
-          ATIVIDADES — encaixe para a Ana (CRUD de Atividades).
-          Ana, cole aqui o seu bloco. No topo deste arquivo, importe:
-            import { useState } from 'react';
-            import { useAtividades } from '../../atividades/hooks/useAtividades';
-            import { ListaAtividades } from '../../atividades/components/ListaAtividades';
-            import { AtividadeDetalhe } from '../../atividades/components/AtividadeDetalhe';
-          Dentro do componente:
-            const { atividades, carregando, erro, recarregar, alternarFeita } = useAtividades(roteiro.id);
-            const [aberta, setAberta] = useState(null);
-          E troque o EmptyState abaixo por:
-            <ListaAtividades
-              atividades={atividades} carregando={carregando} erro={erro}
-              aoNova={() => navigation.navigate('AtividadeForm', { roteiro })}
-              aoAlternar={alternarFeita}
-              aoAbrir={setAberta}
-              aoTentarDeNovo={recarregar}
-            />
-            <AtividadeDetalhe
-              atividade={aberta} roteiro={roteiro}
-              aoFechar={() => setAberta(null)}
-              aoEditar={(a) => { setAberta(null); navigation.navigate('AtividadeForm', { roteiro, atividade: a }); }}
-            />
-          ========================================================== */}
-      <EmptyState
-        titulo="Atividades"
-        mensagem="A seção de atividades será integrada aqui (Ana)."
+      <View style={styles.secao}>
+        <Text style={styles.secaoTitulo}>Atividades</Text>
+        <Button
+          titulo="+ Nova"
+          variante="primario"
+          pequeno
+          onPress={() => navigation.navigate('AtividadeForm', { roteiro })}
+        />
+      </View>
+
+      <ListaAtividades
+        atividades={atividades}
+        carregando={carregando}
+        erro={erro}
+        onTentarDeNovo={carregar}
+        onAlternar={alternarFeita}
+        onAbrir={setAberta}
       />
+
+      {aberta ? (
+        <AtividadeDetalhe
+          atividade={aberta}
+          roteiro={roteiro}
+          onFechar={() => setAberta(null)}
+          onEditar={editar}
+        />
+      ) : null}
     </ScreenTemplate>
   );
 }
 
 const styles = StyleSheet.create({
-  bloco: { gap: 4, marginBottom: 8 },
-  linha: { fontFamily: fonts.corpo, fontSize: 14, color: colors.suave },
-  custo: { fontFamily: fonts.monoMedio, fontSize: 14, color: colors.tinta, marginTop: 4 },
+  stats: { flexDirection: 'row', gap: 10 },
+  secao: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 8,
+    marginBottom: -2,
+  },
+  secaoTitulo: {
+    fontFamily: fonts.corpoForte,
+    fontSize: 10,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: colors.tenue,
+  },
 });
