@@ -13,7 +13,7 @@ import { CartaoViagem } from '../components/CartaoViagem';
 import { Indicadores } from '../components/Indicadores';
 import { OutrosRoteiros } from '../components/OutrosRoteiros';
 import { ProximasAtividades } from '../components/ProximasAtividades';
-import { Surgir } from '../components/Surgir';
+import { Surgir } from '../../../components/atoms/Surgir';
 import { hojePorExtenso, saudacao } from '../formatos';
 import * as dashboardService from '../services/dashboardService';
 

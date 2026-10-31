@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing } from 'react-native';
 
-import { useMovimentoReduzido } from '../../../hooks/useMovimentoReduzido';
+import { useMovimentoReduzido } from '../../hooks/useMovimentoReduzido';
 
 /**
  * Entrada suave: o conteúdo aparece subindo um pouco. Com "atraso" diferente

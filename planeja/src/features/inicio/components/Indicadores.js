@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '../../../config/theme';
-import { NumeroAnimado } from './NumeroAnimado';
-import { Surgir } from './Surgir';
+import { NumeroAnimado } from '../../../components/atoms/NumeroAnimado';
+import { Surgir } from '../../../components/atoms/Surgir';
 
 /**
  * Os quatro contadores do painel em grade 2×2. Cada um abre a sua seção.

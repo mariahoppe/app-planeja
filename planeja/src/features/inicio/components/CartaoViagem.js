@@ -5,7 +5,7 @@ import { Button } from '../../../components/atoms/Button';
 import { colors, fonts } from '../../../config/theme';
 import { moeda, periodoCurto, situacaoViagem, STATUS_VIAGEM } from '../formatos';
 import { CenaVoo } from './CenaVoo';
-import { NumeroAnimado } from './NumeroAnimado';
+import { NumeroAnimado } from '../../../components/atoms/NumeroAnimado';
 
 // Branco translúcido para textos secundários sobre o fundo de acento.
 const BRANCO_SUAVE = 'rgba(255,255,255,0.72)';
