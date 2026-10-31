@@ -1,5 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { DestinoFormScreen } from '../features/destinos/screens/DestinoFormScreen';
+import { DestinosScreen } from '../features/destinos/screens/DestinosScreen';
 import { ConfiguracoesScreen } from '../features/perfil/screens/ConfiguracoesScreen';
 import { PerfilScreen } from '../features/perfil/screens/PerfilScreen';
 import { RoteiroDetalheScreen } from '../features/roteiros/screens/RoteiroDetalheScreen';
@@ -20,6 +22,8 @@ export function AppStack() {
       <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
       <Stack.Screen name="RoteiroDetalhe" component={RoteiroDetalheScreen} />
       <Stack.Screen name="RoteiroForm" component={RoteiroFormScreen} />
+      <Stack.Screen name="Destinos" component={DestinosScreen} />
+      <Stack.Screen name="DestinoForm" component={DestinoFormScreen} />
     </Stack.Navigator>
   );
 }
