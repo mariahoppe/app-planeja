@@ -21,8 +21,14 @@ const obterDashboard = async (userId, isAdmin) => {
     order: [['inicio', 'ASC']]
   });
 
-  // "Próxima viagem" no protótipo é o roteiro não concluído mais próximo
-  const proximaViagem = roteiros.find((r) => r.status !== 'concluido') || null;
+  // "Próxima viagem" no protótipo é o roteiro não concluído mais próximo.
+  // Prioriza o que ainda não terminou (em andamento ou futuro); um roteiro
+  // antigo que ninguém marcou como concluído só aparece se não houver outro.
+  // "aaaa-mm-dd" no fuso do Brasil, para comparar direto com as datas do roteiro
+  const hoje = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Sao_Paulo' });
+  const naoConcluidos = roteiros.filter((r) => r.status !== 'concluido');
+  const proximaViagem =
+    naoConcluidos.find((r) => (r.fim || r.inicio) >= hoje) || naoConcluidos[0] || null;
 
   const resumoRoteiro = (r) => {
     const atividades = r.atividades || [];
