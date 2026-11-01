@@ -10,8 +10,8 @@ import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
-import { obterPosicao } from '../../../services/nativos';
-import { obterPerfilLocal, salvarFotoLocal, salvarLocalizacao } from '../../../services/perfilLocal';
+import { obterPosicao, reduzirFotoPerfil } from '../../../services/nativos';
+import { obterLocalizacao, salvarLocalizacao } from '../../../services/perfilLocal';
 import * as authService from '../../auth/services/authService';
 import { PainelEditarPerfil } from '../components/PainelEditarPerfil';
 import { PainelTrocarSenha } from '../components/PainelTrocarSenha';
@@ -31,38 +31,34 @@ function formatarCoordenadas(localizacao) {
 }
 
 /**
- * Nome e e-mail vêm da sessão (API). Foto e localização ficam só neste aparelho.
+ * Nome, e-mail e foto vêm da sessão (API). A localização fica só neste aparelho.
  * Cada permissão é pedida no toque do botão, pelo services/nativos.
  */
 export function PerfilScreen({ navigation }) {
   const { usuario, atualizarPerfil, sair } = useAuth();
   const toast = useToast();
 
-  const [fotoUri, setFotoUri] = useState(null);
   const [localizacao, setLocalizacao] = useState(null);
   const [painel, setPainel] = useState(null); // 'editar' | 'senha' | null
   const [salvando, setSalvando] = useState(false);
   const [buscandoLocal, setBuscandoLocal] = useState(false);
   const [erro, setErro] = useState(null);
 
-  // Relê foto e localização sempre que a tela volta ao foco.
+  // Relê a localização sempre que a tela volta ao foco.
   useFocusEffect(
     useCallback(() => {
-      obterPerfilLocal().then((local) => {
-        setFotoUri(local.fotoUri);
-        setLocalizacao(local.localizacao);
-      });
+      obterLocalizacao().then(setLocalizacao);
     }, [])
   );
 
-  async function salvarPerfil({ nome, fotoUri: fotoNova }) {
+  // Manda só o que mudou, tudo de uma vez. foto_url null = voltar a usar a inicial.
+  async function salvarPerfil({ nome, fotoUri }) {
     try {
       setSalvando(true);
-      if (nome !== usuario.nome) await atualizarPerfil({ nome });
-      if (fotoNova && fotoNova !== fotoUri) {
-        await salvarFotoLocal(fotoNova);
-        setFotoUri(fotoNova);
-      }
+      const dados = {};
+      if (nome !== usuario.nome) dados.nome = nome;
+      if (fotoUri !== usuario.foto_url) dados.foto_url = fotoUri ? await reduzirFotoPerfil(fotoUri) : null;
+      if (Object.keys(dados).length > 0) await atualizarPerfil(dados);
       setPainel(null);
       toast('Perfil atualizado.');
     } catch (e) {
@@ -109,7 +105,7 @@ export function PerfilScreen({ navigation }) {
       <ErrorMessage mensagem={erro} />
 
       <Card style={styles.usuario}>
-        <Avatar nome={usuario.nome} fotoUri={fotoUri} tamanho={52} />
+        <Avatar nome={usuario.nome} fotoUri={usuario.foto_url} tamanho={52} />
         <View style={styles.usuarioTextos}>
           <Text style={styles.nome}>{usuario.nome}</Text>
           <Text style={styles.email}>{usuario.email}</Text>
@@ -132,7 +128,6 @@ export function PerfilScreen({ navigation }) {
       {painel === 'editar' ? (
         <PainelEditarPerfil
           usuario={usuario}
-          fotoUri={fotoUri}
           onSalvar={salvarPerfil}
           onFechar={() => setPainel(null)}
           carregando={salvando}

@@ -37,7 +37,7 @@ export async function perfil() {
   return usuario;
 }
 
-// Atualiza os dados da conta e guarda a versão nova. "dados": { nome }.
+// Atualiza os dados da conta e guarda a versão nova. "dados": { nome, foto_url }.
 export async function atualizarPerfil(id, dados) {
   const usuario = await put(`/usuarios/${id}`, dados);
   await salvarUsuario(usuario);
@@ -48,8 +48,8 @@ export function trocarSenha(senhaAtual, novaSenha) {
   return put('/usuarios/trocar-senha', { senha_atual: senhaAtual, nova_senha: novaSenha });
 }
 
-// Apaga o que é da conta: token, usuário, foto e localização.
-// As preferências (services/preferencias) são do aparelho e ficam.
+// Apaga do aparelho o que é da conta: token, usuário e localização.
+// A foto continua no banco, e as preferências (services/preferencias) são do aparelho e ficam.
 export async function sair() {
   await Promise.all([limparSessao(), limparPerfilLocal()]);
 }

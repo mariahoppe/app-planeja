@@ -15,10 +15,11 @@ import { validarPerfil } from '../validacao';
 /**
  * Painel "Editar perfil": troca de foto e de nome. O e-mail só é exibido.
  * Nada é gravado aqui: a tela recebe { nome, fotoUri } em onSalvar.
+ * "Usar inicial" tira a foto só da prévia: vale ao salvar, e o × desfaz.
  */
-export function PainelEditarPerfil({ usuario, fotoUri, onSalvar, onFechar, carregando = false }) {
+export function PainelEditarPerfil({ usuario, onSalvar, onFechar, carregando = false }) {
   const [nome, setNome] = useState(usuario.nome);
-  const [foto, setFoto] = useState(fotoUri);
+  const [foto, setFoto] = useState(usuario.foto_url);
   const [erros, setErros] = useState({});
   const [erroFoto, setErroFoto] = useState(null);
 
@@ -58,6 +59,7 @@ export function PainelEditarPerfil({ usuario, fotoUri, onSalvar, onFechar, carre
       <Card style={styles.foto}>
         <Avatar nome={nome} fotoUri={foto} tamanho={52} onPress={trocarFoto} />
         <Link titulo="Trocar foto" inline onPress={trocarFoto} />
+        {foto ? <Link titulo="Usar inicial" inline onPress={() => setFoto(null)} /> : null}
       </Card>
 
       <FormField label="Nome" value={nome} onChangeText={setNome} maxLength={80} erro={erros.nome} />
