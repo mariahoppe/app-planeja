@@ -23,7 +23,7 @@ export function Avatar({ nome, fotoUri, tamanho = 40, onPress }) {
       {fotoUri ? (
         <Image source={{ uri: fotoUri }} style={dimensoes} />
       ) : (
-        <Text style={[styles.inicial, { fontSize: tamanho * 0.42 }]}>{inicial}</Text>
+        <Text style={[styles.inicial, { fontSize: tamanho * 0.33 }]}>{inicial}</Text>
       )}
     </Pressable>
   );
@@ -31,7 +31,7 @@ export function Avatar({ nome, fotoUri, tamanho = 40, onPress }) {
 
 const styles = StyleSheet.create({
   circulo: {
-    backgroundColor: colors.acento,
+    backgroundColor: colors.acentoSuave,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   inicial: {
-    fontFamily: fonts.titulo,
-    color: colors.branco,
+    fontFamily: fonts.tituloMedio,
+    color: colors.acento,
   },
 });

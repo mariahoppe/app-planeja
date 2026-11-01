@@ -1,10 +1,11 @@
-import { get, post } from '../../../api/api';
+import { get, post, put } from '../../../api/api';
 import { limparSessao, salvarToken, salvarUsuario } from '../../../api/storage';
 import { limparPerfilLocal } from '../../../services/perfilLocal';
 
 /**
  * Autenticação do app contra a API real (server/):
  *   POST /auth/login · POST /auth/registro · POST /auth/esqueci-senha · GET /usuarios/perfil
+ *   PUT /usuarios/:id · PUT /usuarios/trocar-senha
  * Login e cadastro devolvem { usuario, token }: o token vai para o cofre e o
  * usuário para o AsyncStorage (ver api/storage.js). A senha só viaja no corpo do POST.
  * Erros chegam como ApiError, com a mensagem pronta da API (ex.: "Email ou senha incorretos").
@@ -34,6 +35,17 @@ export async function perfil() {
   const usuario = await get('/usuarios/perfil');
   await salvarUsuario(usuario);
   return usuario;
+}
+
+// Atualiza os dados da conta e guarda a versão nova. "dados": { nome }.
+export async function atualizarPerfil(id, dados) {
+  const usuario = await put(`/usuarios/${id}`, dados);
+  await salvarUsuario(usuario);
+  return usuario;
+}
+
+export function trocarSenha(senhaAtual, novaSenha) {
+  return put('/usuarios/trocar-senha', { senha_atual: senhaAtual, nova_senha: novaSenha });
 }
 
 // Apaga o que é da conta: token, usuário, foto e localização.

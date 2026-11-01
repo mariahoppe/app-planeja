@@ -1,6 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Button } from '../../../components/atoms/Button';
@@ -9,8 +9,12 @@ import { ErrorMessage } from '../../../components/molecules/ErrorMessage';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { capturarFoto, escolherImagem, obterPosicao } from '../../../services/nativos';
+import { useToast } from '../../../contexts/ToastContext';
+import { obterPosicao } from '../../../services/nativos';
 import { obterPerfilLocal, salvarFotoLocal, salvarLocalizacao } from '../../../services/perfilLocal';
+import * as authService from '../../auth/services/authService';
+import { PainelEditarPerfil } from '../components/PainelEditarPerfil';
+import { PainelTrocarSenha } from '../components/PainelTrocarSenha';
 
 function descreverLocal(localizacao) {
   if (!localizacao) {
@@ -31,10 +35,14 @@ function formatarCoordenadas(localizacao) {
  * Cada permissão é pedida no toque do botão, pelo services/nativos.
  */
 export function PerfilScreen({ navigation }) {
-  const { usuario, sair } = useAuth();
+  const { usuario, atualizarPerfil, sair } = useAuth();
+  const toast = useToast();
+
   const [fotoUri, setFotoUri] = useState(null);
   const [localizacao, setLocalizacao] = useState(null);
-  const [ocupado, setOcupado] = useState(null); // 'foto' | 'gps' | null
+  const [painel, setPainel] = useState(null); // 'editar' | 'senha' | null
+  const [salvando, setSalvando] = useState(false);
+  const [buscandoLocal, setBuscandoLocal] = useState(false);
   const [erro, setErro] = useState(null);
 
   // Relê foto e localização sempre que a tela volta ao foco.
@@ -47,86 +55,117 @@ export function PerfilScreen({ navigation }) {
     }, [])
   );
 
-  // Liga o "carregando" do botão e transforma falha (ex.: permissão negada) em mensagem.
-  async function executar(chave, acao) {
-    setErro(null);
-    setOcupado(chave);
+  async function salvarPerfil({ nome, fotoUri: fotoNova }) {
     try {
-      await acao();
+      setSalvando(true);
+      if (nome !== usuario.nome) await atualizarPerfil({ nome });
+      if (fotoNova && fotoNova !== fotoUri) {
+        await salvarFotoLocal(fotoNova);
+        setFotoUri(fotoNova);
+      }
+      setPainel(null);
+      toast('Perfil atualizado.');
     } catch (e) {
-      setErro(e.message);
+      Alert.alert('Não foi possível salvar', e.message);
     } finally {
-      setOcupado(null);
+      setSalvando(false);
     }
   }
 
-  function trocarFoto(origem) {
-    return executar('foto', async () => {
-      const resultado = origem === 'camera' ? await capturarFoto() : await escolherImagem();
-      if (!resultado) {
-        return; // cancelou
-      }
-      await salvarFotoLocal(resultado.uri);
-      setFotoUri(resultado.uri);
-    });
+  async function trocarSenha({ senhaAtual, novaSenha }) {
+    try {
+      setSalvando(true);
+      await authService.trocarSenha(senhaAtual, novaSenha);
+      setPainel(null);
+      toast('Senha alterada.');
+    } catch (e) {
+      Alert.alert('Não foi possível trocar a senha', e.message);
+    } finally {
+      setSalvando(false);
+    }
   }
 
-  function atualizarLocalizacao() {
-    return executar('gps', async () => {
+  async function atualizarLocalizacao() {
+    setErro(null);
+    setBuscandoLocal(true);
+    try {
       const posicao = await obterPosicao();
       await salvarLocalizacao(posicao);
       setLocalizacao(posicao);
-    });
+    } catch (e) {
+      setErro(e.message);
+    } finally {
+      setBuscandoLocal(false);
+    }
   }
 
   return (
-    <ScreenTemplate sobretitulo="Conta" titulo="Meu perfil" aoVoltar={() => navigation.goBack()}>
+    <ScreenTemplate
+      sobretitulo="Conta"
+      titulo="Meu perfil"
+      aoVoltar={() => navigation.goBack()}
+      direita={<Button titulo="Editar" pequeno onPress={() => setPainel('editar')} />}
+    >
       <ErrorMessage mensagem={erro} />
 
-      <View style={styles.topo}>
-        <Avatar nome={usuario.nome} fotoUri={fotoUri} tamanho={96} />
-      </View>
-      <Button
-        titulo="Tirar foto"
-        bloco
-        carregando={ocupado === 'foto'}
-        desabilitado={ocupado !== null}
-        onPress={() => trocarFoto('camera')}
-      />
-      <Button
-        titulo="Escolher da galeria"
-        bloco
-        desabilitado={ocupado !== null}
-        onPress={() => trocarFoto('galeria')}
-      />
+      <Card style={styles.usuario}>
+        <Avatar nome={usuario.nome} fotoUri={fotoUri} tamanho={52} />
+        <View style={styles.usuarioTextos}>
+          <Text style={styles.nome}>{usuario.nome}</Text>
+          <Text style={styles.email}>{usuario.email}</Text>
+        </View>
+      </Card>
 
+      <Text style={styles.secao}>Segurança</Text>
+      <Button titulo="Trocar senha" bloco onPress={() => setPainel('senha')} />
+      <Button titulo="Sair da conta" bloco onPress={sair} />
+
+      <Text style={styles.secao}>Aparelho</Text>
       <Card>
-        <Text style={styles.rotulo}>Nome</Text>
-        <Text style={styles.valor}>{usuario.nome}</Text>
-        <Text style={styles.rotulo}>E-mail</Text>
-        <Text style={styles.valor}>{usuario.email}</Text>
         <Text style={styles.rotulo}>Você está em</Text>
         <Text style={styles.valor}>{descreverLocal(localizacao)}</Text>
         {localizacao ? <Text style={styles.coordenadas}>{formatarCoordenadas(localizacao)}</Text> : null}
       </Card>
-      <Button
-        titulo="Atualizar localização"
-        bloco
-        carregando={ocupado === 'gps'}
-        desabilitado={ocupado !== null}
-        onPress={atualizarLocalizacao}
-      />
-
+      <Button titulo="Atualizar localização" bloco carregando={buscandoLocal} onPress={atualizarLocalizacao} />
       <Button titulo="Configurações" bloco onPress={() => navigation.navigate('Configuracoes')} />
-      <Button titulo="Sair" bloco onPress={sair} />
+
+      {painel === 'editar' ? (
+        <PainelEditarPerfil
+          usuario={usuario}
+          fotoUri={fotoUri}
+          onSalvar={salvarPerfil}
+          onFechar={() => setPainel(null)}
+          carregando={salvando}
+        />
+      ) : null}
+
+      {painel === 'senha' ? (
+        <PainelTrocarSenha onConfirmar={trocarSenha} onFechar={() => setPainel(null)} carregando={salvando} />
+      ) : null}
     </ScreenTemplate>
   );
 }
 
 const styles = StyleSheet.create({
-  topo: {
-    alignItems: 'center',
-    paddingVertical: 8,
+  usuario: { flexDirection: 'row', alignItems: 'center', gap: 13, paddingHorizontal: 13 },
+  usuarioTextos: { flex: 1, minWidth: 0 },
+  nome: { fontFamily: fonts.titulo, fontSize: 17, lineHeight: 21, color: colors.tinta },
+  email: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    marginTop: 2,
+    color: colors.suave,
+  },
+  secao: {
+    fontFamily: fonts.corpoForte,
+    fontSize: 10,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    marginTop: 8,
+    marginBottom: -2,
+    color: colors.tenue,
   },
   rotulo: {
     fontFamily: fonts.corpoForte,
@@ -135,14 +174,6 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.tenue,
   },
-  valor: {
-    fontFamily: fonts.corpo,
-    fontSize: 15,
-    color: colors.tinta,
-  },
-  coordenadas: {
-    fontFamily: fonts.mono,
-    fontSize: 12,
-    color: colors.suave,
-  },
+  valor: { fontFamily: fonts.corpo, fontSize: 15, color: colors.tinta },
+  coordenadas: { fontFamily: fonts.mono, fontSize: 12, color: colors.suave },
 });

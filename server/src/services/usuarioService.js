@@ -45,11 +45,13 @@ const atualizar = async (id, dados, reqUser) => {
 };
 
 const trocarSenha = async (userId, { senha_atual, nova_senha }) => {
-  const usuario = await Usuario.findByPk(userId);
+  // O escopo padrão esconde senha_hash, e sem ele a comparação abaixo quebra
+  const usuario = await Usuario.scope('comSenha').findByPk(userId);
   if (!usuario) throw new AppError('Usuário não encontrado', 404);
 
+  // 400, não 401: a sessão continua válida, só a senha informada está errada
   const senhaValida = await bcrypt.compare(senha_atual, usuario.senha_hash);
-  if (!senhaValida) throw new AppError('Senha atual incorreta', 401);
+  if (!senhaValida) throw new AppError('Senha atual incorreta', 400);
 
   const senha_hash = await bcrypt.hash(nova_senha, SALT_ROUNDS);
   await usuario.update({ senha_hash });
