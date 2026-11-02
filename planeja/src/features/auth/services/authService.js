@@ -4,7 +4,8 @@ import { limparPerfilLocal } from '../../../services/perfilLocal';
 
 /**
  * Autenticação do app contra a API real (server/):
- *   POST /auth/login · POST /auth/registro · POST /auth/esqueci-senha · GET /usuarios/perfil
+ *   POST /auth/login · POST /auth/registro · POST /auth/esqueci-senha · POST /auth/redefinir-senha
+ *   GET /usuarios/perfil
  *   PUT /usuarios/:id · PUT /usuarios/trocar-senha
  * Login e cadastro devolvem { usuario, token }: o token vai para o cofre e o
  * usuário para o AsyncStorage (ver api/storage.js). A senha só viaja no corpo do POST.
@@ -28,6 +29,10 @@ export async function cadastrar(nome, email, senha) {
 
 export async function esqueciSenha(email) {
   return post('/auth/esqueci-senha', { email });
+}
+
+export function redefinirSenha(email, codigo, senha) {
+  return post('/auth/redefinir-senha', { email, codigo, senha });
 }
 
 // Confere com a API se o token salvo ainda vale e devolve o usuário atualizado.

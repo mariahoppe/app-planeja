@@ -6,13 +6,13 @@ const SALT_ROUNDS = 12;
 
 const listar = async () => {
   return Usuario.findAll({
-    attributes: { exclude: ['senha_hash', 'reset_token', 'reset_token_expira'] }
+    attributes: { exclude: ['senha_hash', 'reset_token', 'reset_token_expira', 'reset_tentativas'] }
   });
 };
 
 const buscarPorId = async (id) => {
   const usuario = await Usuario.findByPk(id, {
-    attributes: { exclude: ['senha_hash', 'reset_token', 'reset_token_expira'] }
+    attributes: { exclude: ['senha_hash', 'reset_token', 'reset_token_expira', 'reset_tentativas'] }
   });
   if (!usuario) throw new AppError('Usuário não encontrado', 404);
   return usuario;
@@ -40,7 +40,7 @@ const atualizar = async (id, dados, reqUser) => {
   }
 
   await usuario.update(dados);
-  const { senha_hash, reset_token, reset_token_expira, ...result } = usuario.toJSON();
+  const { senha_hash, reset_token, reset_token_expira, reset_tentativas, ...result } = usuario.toJSON();
   return result;
 };
 

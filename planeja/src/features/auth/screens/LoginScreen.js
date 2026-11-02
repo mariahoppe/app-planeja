@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
@@ -9,12 +9,17 @@ import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { emailValido } from '../validacao';
 
-export function LoginScreen({ navigation }) {
+export function LoginScreen({ navigation, route }) {
   const { entrar } = useAuth();
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [erros, setErros] = useState({});
   const [carregando, setCarregando] = useState(false);
+
+  // Na volta da recuperação de senha, o e-mail usado lá continua preenchido, como no protótipo.
+  useEffect(() => {
+    if (route.params?.email !== undefined) setEmail(route.params.email);
+  }, [route.params?.email]);
 
   // Mesmas regras e mensagens do protótipo; a API só é chamada com os campos ok.
   function validar() {
@@ -38,9 +43,9 @@ export function LoginScreen({ navigation }) {
     }
   }
 
-  function irPara(tela) {
+  function irPara(tela, params) {
     setErros({});
-    navigation.navigate(tela);
+    navigation.navigate(tela, params);
   }
 
   return (
@@ -68,7 +73,7 @@ export function LoginScreen({ navigation }) {
 
       <Button titulo="Entrar" variante="primario" bloco carregando={carregando} onPress={enviar} />
 
-      <Link titulo="Esqueci minha senha" onPress={() => irPara('EsqueciSenha')} />
+      <Link titulo="Esqueci minha senha" onPress={() => irPara('EsqueciSenha', { email: email.trim() })} />
 
       <View style={styles.divisor}>
         <View style={styles.divisorLinha} />

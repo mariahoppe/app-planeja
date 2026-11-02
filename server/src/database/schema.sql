@@ -63,6 +63,7 @@ CREATE TABLE usuarios (
   foto_url           TEXT,
   reset_token        VARCHAR(255),
   reset_token_expira TIMESTAMPTZ,
+  reset_tentativas   SMALLINT      NOT NULL DEFAULT 0,
   created_at         TIMESTAMPTZ   NOT NULL DEFAULT now(),
   updated_at         TIMESTAMPTZ   NOT NULL DEFAULT now(),
 
@@ -75,6 +76,7 @@ CREATE UNIQUE INDEX usuarios_email_unique ON usuarios (lower(email));
 
 COMMENT ON COLUMN usuarios.foto_url IS 'Foto de perfil enviada pela galeria (tela Meu perfil)';
 COMMENT ON COLUMN usuarios.reset_token IS 'Código de 6 dígitos do fluxo "esqueci minha senha"';
+COMMENT ON COLUMN usuarios.reset_tentativas IS 'Erros seguidos no código de recuperação de senha';
 
 -- -----------------------------------------------------------------------------
 -- destinos

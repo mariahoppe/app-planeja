@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { CadastroScreen } from '../features/auth/screens/CadastroScreen';
 import { EsqueciSenhaScreen } from '../features/auth/screens/EsqueciSenhaScreen';
 import { LoginScreen } from '../features/auth/screens/LoginScreen';
+import { RedefinirSenhaScreen } from '../features/auth/screens/RedefinirSenhaScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -13,6 +14,7 @@ export function AuthStack() {
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Cadastro" component={CadastroScreen} />
       <Stack.Screen name="EsqueciSenha" component={EsqueciSenhaScreen} />
+      <Stack.Screen name="RedefinirSenha" component={RedefinirSenhaScreen} />
     </Stack.Navigator>
   );
 }

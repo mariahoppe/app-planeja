@@ -30,7 +30,7 @@ const sendEmail = async ({ to, subject, html }) => {
     }
 
     const mailOptions = {
-        from: process.env.SMTP_FROM || '"Organiza Viagens" <noreply@organizaviagens.com>',
+        from: process.env.MAIL_FROM || 'Planeja <nao-responda@planeja.app>',
         to,
         subject,
         html

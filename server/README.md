@@ -179,7 +179,7 @@ Base URL: `http://localhost:3000/api`
 | POST | `/auth/registro` | Criar conta |
 | POST | `/auth/login` | Fazer login (retorna token) |
 | POST | `/auth/esqueci-senha` | Solicitar reset de senha |
-| POST | `/auth/redefinir-senha` | Redefinir senha com token |
+| POST | `/auth/redefinir-senha` | Redefinir senha com o código de 6 dígitos enviado por e-mail |
 
 ### Dashboard (JWT)
 
