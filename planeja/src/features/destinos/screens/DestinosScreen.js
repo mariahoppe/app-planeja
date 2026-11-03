@@ -61,7 +61,6 @@ export function DestinosScreen({ navigation }) {
     <ScreenTemplate
       sobretitulo="Para onde vou"
       titulo="Destinos"
-      aoVoltar={() => navigation.goBack()}
       direita={<Button titulo="+ Novo" pequeno onPress={abrirNovo} />}
     >
       <Input
