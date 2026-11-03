@@ -8,7 +8,6 @@ import { Button } from '../../../components/atoms/Button';
 import { ErrorMessage } from '../../../components/molecules/ErrorMessage';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
-import { obterPerfilLocal } from '../../../services/perfilLocal';
 import { CartaoViagem } from '../components/CartaoViagem';
 import { Indicadores } from '../components/Indicadores';
 import { OutrosRoteiros } from '../components/OutrosRoteiros';
@@ -28,7 +27,6 @@ export function InicioScreen({ navigation }) {
   const { usuario } = useAuth();
   const margens = useSafeAreaInsets();
 
-  const [fotoUri, setFotoUri] = useState(null);
   const [painel, setPainel] = useState(null);
   const [erro, setErro] = useState(null);
   const [atualizando, setAtualizando] = useState(false);
@@ -42,10 +40,9 @@ export function InicioScreen({ navigation }) {
     }
   }, []);
 
-  // Ao voltar de outra tela (Perfil, roteiro, destino), atualiza foto e números.
+  // Ao voltar de outra tela (Perfil, roteiro, destino), atualiza os números.
   useFocusEffect(
     useCallback(() => {
-      obterPerfilLocal().then((local) => setFotoUri(local.fotoUri));
       carregar();
     }, [carregar])
   );
@@ -86,7 +83,7 @@ export function InicioScreen({ navigation }) {
               <Text style={styles.nome}>{primeiroNome}</Text>
             </Text>
           </View>
-          <Avatar nome={usuario.nome} fotoUri={fotoUri} tamanho={46} onPress={() => navigation.navigate('Perfil')} />
+          <Avatar nome={usuario.nome} fotoUri={usuario.foto_url} tamanho={46} onPress={() => navigation.navigate('Perfil')} />
         </Surgir>
 
         {erro ? (

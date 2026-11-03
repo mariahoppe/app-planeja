@@ -1,3 +1,4 @@
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
@@ -67,6 +68,17 @@ export async function escolherImagem() {
     return null;
   }
   return { uri: resultado.assets[0].uri };
+}
+
+const LADO_FOTO_PERFIL = 256;
+
+// Reduz a foto de perfil e a transforma em texto (base64) para gravar no banco.
+export async function reduzirFotoPerfil(uri) {
+  const contexto = ImageManipulator.manipulate(uri);
+  contexto.resize({ width: LADO_FOTO_PERFIL });
+  const imagem = await contexto.renderAsync();
+  const { base64 } = await imagem.saveAsync({ format: SaveFormat.JPEG, compress: 0.7, base64: true });
+  return `data:image/jpeg;base64,${base64}`;
 }
 
 const ESPERA_GPS_MS = 15000;

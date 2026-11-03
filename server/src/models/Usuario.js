@@ -36,11 +36,16 @@ module.exports = (sequelize) => {
     reset_token_expira: {
       type: DataTypes.DATE,
       allowNull: true
+    },
+    reset_tentativas: {
+      type: DataTypes.SMALLINT,
+      allowNull: false,
+      defaultValue: 0
     }
   }, {
     tableName: 'usuarios',
     defaultScope: {
-      attributes: { exclude: ['senha_hash', 'reset_token', 'reset_token_expira'] }
+      attributes: { exclude: ['senha_hash', 'reset_token', 'reset_token_expira', 'reset_tentativas'] }
     },
     scopes: {
       comSenha: { attributes: {} }

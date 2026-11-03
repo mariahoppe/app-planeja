@@ -5,6 +5,7 @@ const { Usuario } = require('../models');
 const { AppError } = require('../utils/errorHandler');
 
 const SALT_ROUNDS = 12;
+const MAX_ERROS_CODIGO = 5;
 
 const gerarToken = (usuario) => {
   return jwt.sign(
@@ -39,7 +40,13 @@ const login = async ({ email, senha }) => {
   const token = gerarToken(usuario);
 
   return {
-    usuario: { id: usuario.id, nome: usuario.nome, email: usuario.email, perfil: usuario.perfil },
+    usuario: {
+      id: usuario.id,
+      nome: usuario.nome,
+      email: usuario.email,
+      perfil: usuario.perfil,
+      foto_url: usuario.foto_url
+    },
     token
   };
 };
@@ -52,38 +59,34 @@ const esqueciSenha = async ({ email }) => {
     return { message: 'Se o email estiver cadastrado, você receberá instruções para redefinir a senha' };
   }
 
-  const resetToken = crypto.randomBytes(32).toString('hex');
-  const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+  // randomInt é o sorteio próprio para segurança; padStart mantém zeros à esquerda (ex.: 004217)
+  const codigo = String(crypto.randomInt(0, 1000000)).padStart(6, '0');
 
+  // O código é guardado como a senha: só o hash vai para o banco
   await usuario.update({
-    reset_token: resetTokenHash,
-    reset_token_expira: new Date(Date.now() + 30 * 60 * 1000) // 30 minutos de validade
+    reset_token: await bcrypt.hash(codigo, SALT_ROUNDS),
+    reset_token_expira: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos de validade
+    reset_tentativas: 0
   });
-
-  // Gera o link de recuperação baseado na URL do front-end configurada no .env
-  const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5174';
-  const linkRecuperacao = `${frontendUrl}/redefinir-senha?token=${resetToken}`;
 
   const emailHtml = `
     <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #d8d4cc; border-radius: 8px; background-color: #faf8f3;">
-      <h2 style="color: #1a1a1a; font-family: Georgia, serif; font-size: 22px; margin-bottom: 16px;">Recuperação de Senha - Organiza Viagens</h2>
+      <h2 style="color: #1a1a1a; font-family: Georgia, serif; font-size: 22px; margin-bottom: 16px;">Recuperação de Senha - Planeja</h2>
       <p style="color: #3a3a3a; font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
         Olá, <strong>${usuario.nome}</strong>.
       </p>
       <p style="color: #3a3a3a; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
-        Recebemos uma solicitação para redefinir a senha da sua conta no Organiza Viagens. Para prosseguir, clique no botão abaixo:
+        Recebemos uma solicitação para redefinir a senha da sua conta no Planeja. Digite este código no aplicativo:
       </p>
-      <div style="margin: 24px 0; text-align: center;">
-        <a href="${linkRecuperacao}" style="display: inline-block; background-color: #8a3a1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px;">
-          Redefinir Senha
-        </a>
+      <div style="margin: 24px 0; text-align: center; color: #8a3a1f; font-size: 32px; font-weight: bold; letter-spacing: 8px;">
+        ${codigo}
       </div>
       <p style="color: #6b6b6b; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
-        Este link é válido por 30 minutos. Se você não solicitou a recuperação, pode ignorar este e-mail com segurança.
+        Este código é válido por 30 minutos. Se você não solicitou a recuperação, pode ignorar este e-mail com segurança.
       </p>
       <hr style="border: 0; border-top: 1px solid #ebe8e1; margin: 20px 0;" />
       <p style="color: #9a9a9a; font-size: 12px; text-align: center; margin: 0;">
-        Organiza Viagens &copy; 2026
+        Planeja &copy; 2026
       </p>
     </div>
   `;
@@ -92,29 +95,35 @@ const esqueciSenha = async ({ email }) => {
   const emailService = require('./emailService');
   emailService.sendEmail({
     to: usuario.email,
-    subject: 'Recuperação de Senha - Organiza Viagens',
+    subject: 'Recuperação de Senha - Planeja',
     html: emailHtml
   }).catch(err => console.error('Erro ao enviar e-mail de recuperação:', err));
 
-  const resposta = { message: 'Se o email estiver cadastrado, você receberá instruções para redefinir a senha' };
-
-  if (process.env.NODE_ENV === 'development') {
-    resposta.reset_token = resetToken;
-  }
-
-  return resposta;
+  return { message: 'Se o email estiver cadastrado, você receberá instruções para redefinir a senha' };
 };
 
 
-const redefinirSenha = async ({ token, senha }) => {
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+const redefinirSenha = async ({ email, codigo, senha }) => {
+  // Busca pelo e-mail: duas pessoas podem receber o mesmo código de 6 dígitos
+  const usuario = await Usuario.scope('comSenha').findOne({ where: { email } });
 
-  const usuario = await Usuario.scope('comSenha').findOne({
-    where: { reset_token: tokenHash }
-  });
+  if (!usuario || !usuario.reset_token || usuario.reset_token_expira < new Date()) {
+    throw new AppError('Código inválido ou expirado', 400);
+  }
 
-  if (!usuario || !usuario.reset_token_expira || usuario.reset_token_expira < new Date()) {
-    throw new AppError('Token inválido ou expirado', 400);
+  const codigoValido = await bcrypt.compare(codigo, usuario.reset_token);
+
+  if (!codigoValido) {
+    // increment soma direto no banco, então tentativas ao mesmo tempo também contam
+    await usuario.increment('reset_tentativas');
+    await usuario.reload();
+
+    // No último erro o código é apagado: 6 dígitos não aguentam tentativas à vontade
+    if (usuario.reset_tentativas >= MAX_ERROS_CODIGO) {
+      await usuario.update({ reset_token: null, reset_token_expira: null, reset_tentativas: 0 });
+    }
+
+    throw new AppError('Código inválido ou expirado', 400);
   }
 
   const senha_hash = await bcrypt.hash(senha, SALT_ROUNDS);
@@ -122,77 +131,11 @@ const redefinirSenha = async ({ token, senha }) => {
   await usuario.update({
     senha_hash,
     reset_token: null,
-    reset_token_expira: null
+    reset_token_expira: null,
+    reset_tentativas: 0
   });
 
   return { message: 'Senha redefinida com sucesso' };
 };
 
-// ... (outros métodos do service)
-
-const validarToken = async ({ token }) => {
-  const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
-  const usuario = await Usuario.findOne({ where: { reset_token: tokenHash } });
-
-  // Se não achar o usuário, o token é inválido
-  if (!usuario) {
-    throw new AppError('Token inválido', 400);
-  }
-
-  // Verifica se expirou
-  if (!usuario.reset_token_expira || usuario.reset_token_expira < new Date()) {
-    // Se expirou, gera um NOVO token e envia um novo e-mail AUTOMATICAMENTE
-    const novoToken = crypto.randomBytes(32).toString('hex');
-    const novoTokenHash = crypto.createHash('sha256').update(novoToken).digest('hex');
-
-    await usuario.update({
-      reset_token: novoTokenHash,
-      reset_token_expira: new Date(Date.now() + 30 * 60 * 1000)
-    });
-
-    const frontendUrl = process.env.CORS_ORIGIN || 'http://localhost:5174';
-    const linkRecuperacao = `${frontendUrl}/redefinir-senha?token=${novoToken}`;
-
-    const emailHtml = `
-      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #d8d4cc; border-radius: 8px; background-color: #faf8f3;">
-        <h2 style="color: #1a1a1a; font-family: Georgia, serif; font-size: 22px; margin-bottom: 16px;">Novo Link de Recuperação - Organiza Viagens</h2>
-        <p style="color: #3a3a3a; font-size: 15px; line-height: 1.6; margin-bottom: 16px;">
-          Olá, <strong>${usuario.nome}</strong>.
-        </p>
-        <p style="color: #3a3a3a; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
-          O link anterior que você acessou expirou. Por segurança, geramos e enviamos este novo link para você redefinir sua senha:
-        </p>
-        <div style="margin: 24px 0; text-align: center;">
-          <a href="${linkRecuperacao}" style="display: inline-block; background-color: #8a3a1f; color: #ffffff; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px;">
-            Redefinir Senha
-          </a>
-        </div>
-        <p style="color: #6b6b6b; font-size: 13px; line-height: 1.5; margin-bottom: 20px;">
-          Este novo link é válido por mais 30 minutos.
-        </p>
-        <hr style="border: 0; border-top: 1px solid #ebe8e1; margin: 20px 0;" />
-        <p style="color: #9a9a9a; font-size: 12px; text-align: center; margin: 0;">
-          Organiza Viagens &copy; 2026
-        </p>
-      </div>
-    `;
-
-    const emailService = require('./emailService');
-    emailService.sendEmail({
-      to: usuario.email,
-      subject: 'Novo Link de Recuperação - Organiza Viagens',
-      html: emailHtml
-    }).catch(err => console.error('Erro ao enviar novo e-mail:', err));
-
-    // Oculta parte do e-mail para não expor na tela (Ex: mar***@gmail.com)
-    const partesEmail = usuario.email.split('@');
-    const emailOculto = `${partesEmail[0].substring(0, 3)}***@${partesEmail[1]}`;
-
-    return { valido: false, expirado: true, email: emailOculto };
-  }
-
-  // Token está válido e no prazo
-  return { valido: true };
-};
-
-module.exports = { registro, login, esqueciSenha, redefinirSenha, validarToken };
+module.exports = { registro, login, esqueciSenha, redefinirSenha };

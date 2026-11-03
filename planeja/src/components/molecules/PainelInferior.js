@@ -1,4 +1,4 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Subir } from '../atoms/Subir';
@@ -22,7 +22,8 @@ export function PainelInferior({ titulo, onFechar, rodape, children }) {
       navigationBarTranslucent
       onRequestClose={onFechar}
     >
-      <View style={styles.fundo}>
+      {/* Sobe o painel junto com o teclado, para os campos não ficarem escondidos. */}
+      <KeyboardAvoidingView behavior="padding" style={styles.fundo}>
         <Pressable style={StyleSheet.absoluteFill} onPress={onFechar} accessibilityLabel="Fechar" />
         <Subir duracao={220} style={[styles.painel, { paddingBottom: Math.max(margens.bottom, 34) }]}>
           <View style={styles.cabecalho}>
@@ -33,12 +34,16 @@ export function PainelInferior({ titulo, onFechar, rodape, children }) {
               <Text style={styles.fechar}>×</Text>
             </Pressable>
           </View>
-          <ScrollView style={styles.rolagem} contentContainerStyle={styles.corpo}>
+          <ScrollView
+            style={styles.rolagem}
+            contentContainerStyle={styles.corpo}
+            keyboardShouldPersistTaps="handled"
+          >
             {children}
           </ScrollView>
           {rodape ? <View style={styles.rodape}>{rodape}</View> : null}
         </Subir>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

@@ -52,13 +52,18 @@ export function AuthProvider({ children }) {
     setUsuario(resposta.usuario);
   }
 
+  async function atualizarPerfil(dados) {
+    const atualizado = await authService.atualizarPerfil(usuario.id, dados);
+    setUsuario(atualizado);
+  }
+
   async function sair() {
     await authService.sair();
     setUsuario(null);
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, restaurando, entrar, cadastrar, sair }}>
+    <AuthContext.Provider value={{ usuario, restaurando, entrar, cadastrar, atualizarPerfil, sair }}>
       {children}
     </AuthContext.Provider>
   );

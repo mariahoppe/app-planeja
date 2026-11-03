@@ -38,8 +38,16 @@ const esqueciSenha = Joi.object({
 });
 
 const redefinirSenha = Joi.object({
-  token: Joi.string().required()
-    .messages({ 'any.required': 'Token é obrigatório' }),
+  email: Joi.string().email().required()
+    .messages({
+      'string.email': 'Email inválido',
+      'any.required': 'Email é obrigatório'
+    }),
+  codigo: Joi.string().pattern(/^\d{6}$/).required()
+    .messages({
+      'string.pattern.base': 'O código tem seis dígitos',
+      'any.required': 'Código é obrigatório'
+    }),
   senha: Joi.string().min(6).required()
     .messages({
       'string.min': 'Senha deve ter no mínimo 6 caracteres',
@@ -48,12 +56,3 @@ const redefinirSenha = Joi.object({
 });
 
 module.exports = { registro, login, esqueciSenha, redefinirSenha };
-
-// ... (outros validadores existentes)
-
-const validarToken = Joi.object({
-  token: Joi.string().required()
-    .messages({ 'any.required': 'Token é obrigatório' })
-});
-
-module.exports = { registro, login, esqueciSenha, redefinirSenha, validarToken };
