@@ -2,6 +2,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from './src/contexts/AuthContext';
+import { ToastProvider } from './src/contexts/ToastContext';
 import useFontesPlaneja from './src/hooks/useFontesPlaneja';
 import { AppNavigator } from './src/navigation/AppNavigator';
 
@@ -15,7 +16,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <AuthProvider>
-        <AppNavigator />
+        <ToastProvider>
+          <AppNavigator />
+        </ToastProvider>
       </AuthProvider>
       <StatusBar style="dark" />
     </SafeAreaProvider>

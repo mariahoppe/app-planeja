@@ -5,7 +5,7 @@
 
 export const colors = {
   acento: '#8A3A1F', // ações principais, posição no ranking, destaques
-  acentoSuave: '#F3E6DF', // fundo da aba ativa
+  acentoSuave: '#F3E6DF', // fundo da aba ativa e de botões discretos (ex.: setas do calendário)
   tinta: '#1A1A1A', // texto principal
   suave: '#6B6B6B', // texto secundário
   tenue: '#9A9A9A', // dicas de campo e títulos de seção
@@ -14,6 +14,8 @@ export const colors = {
   linhaSuave: '#EBE8E1', // divisória do cabeçalho das telas
   branco: '#FFFFFF',
   erroFundo: '#FDF7F4', // fundo de campo com erro de validação
+  linhaTocada: '#F4F1EA', // fundo da linha de lista enquanto está sendo tocada
+  ok: '#3C5A20', // item concluído (ex.: check da atividade feita)
 };
 
 // Cada peso é uma família separada: com fontes carregadas em tempo de execução,
