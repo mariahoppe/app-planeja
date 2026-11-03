@@ -5,7 +5,7 @@
 
 export const colors = {
   acento: '#8A3A1F', // ações principais, posição no ranking, destaques
-  acentoSuave: '#F3EBE4', // fundo de botões discretos (ex.: setas do calendário)
+  acentoSuave: '#F3E6DF', // fundo da aba ativa e de botões discretos (ex.: setas do calendário)
   tinta: '#1A1A1A', // texto principal
   suave: '#6B6B6B', // texto secundário
   tenue: '#9A9A9A', // dicas de campo e títulos de seção
