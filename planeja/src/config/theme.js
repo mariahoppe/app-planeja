@@ -16,6 +16,9 @@ export const colors = {
   erroFundo: '#FDF7F4', // fundo de campo com erro de validação
   linhaTocada: '#F4F1EA', // fundo da linha de lista enquanto está sendo tocada
   ok: '#3C5A20', // item concluído (ex.: check da atividade feita)
+  tintaSuave: '#3A3A3A', // texto corrido (ex.: blocos de uma dica)
+  fundoSeletor: '#EFECE4', // trilho do seletor segmentado (ex.: Nacional | Internacional)
+  bordaFoto: '#B5AEA1', // contorno tracejado do espaço de foto ainda vazio
 };
 
 // Cada peso é uma família separada: com fontes carregadas em tempo de execução,

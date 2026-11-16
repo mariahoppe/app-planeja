@@ -44,26 +44,33 @@ const opcoesFoto = {
   aspect: [1, 1],
 };
 
-export async function capturarFoto() {
+// Foto inteira, sem recorte nem perda: quem comprime depois é a comprimirFotoDica.
+const opcoesFotoLivre = {
+  mediaTypes: ['images'],
+  quality: 1,
+};
+
+// quadrada: false devolve a foto inteira (dicas); o padrão recorta em quadrado (perfil).
+export async function capturarFoto({ quadrada = true } = {}) {
   recusarSeWeb();
   const { status } = await ImagePicker.requestCameraPermissionsAsync();
   if (status !== 'granted') {
     throw new Error('Permissão da câmera negada.');
   }
-  const resultado = await ImagePicker.launchCameraAsync(opcoesFoto);
+  const resultado = await ImagePicker.launchCameraAsync(quadrada ? opcoesFoto : opcoesFotoLivre);
   if (resultado.canceled) {
     return null;
   }
   return { uri: resultado.assets[0].uri };
 }
 
-export async function escolherImagem() {
+export async function escolherImagem({ quadrada = true } = {}) {
   recusarSeWeb();
   const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
   if (status !== 'granted') {
     throw new Error('Permissão da galeria negada.');
   }
-  const resultado = await ImagePicker.launchImageLibraryAsync(opcoesFoto);
+  const resultado = await ImagePicker.launchImageLibraryAsync(quadrada ? opcoesFoto : opcoesFotoLivre);
   if (resultado.canceled) {
     return null;
   }
@@ -79,6 +86,25 @@ export async function reduzirFotoPerfil(uri) {
   const imagem = await contexto.renderAsync();
   const { base64 } = await imagem.saveAsync({ format: SaveFormat.JPEG, compress: 0.7, base64: true });
   return `data:image/jpeg;base64,${base64}`;
+}
+
+// RNF-09: foto de dica com até 1280 px no lado maior, em JPEG 70% e com no máximo 1 MB.
+const LADO_MAXIMO_DICA = 1280;
+const QUALIDADE_DICA = 0.7;
+const LIMITE_FOTO_DICA = 1024 * 1024;
+
+// Comprime a foto de uma dica antes do envio e devolve o novo arquivo, ainda no aparelho.
+export async function comprimirFotoDica(uri) {
+  // Reduz já ao abrir: a foto de 12 MP da câmera nem chega a ocupar a memória inteira.
+  const contexto = ImageManipulator.manipulate(uri, { maxWidth: LADO_MAXIMO_DICA, maxHeight: LADO_MAXIMO_DICA });
+  const imagem = await contexto.renderAsync();
+  const foto = await imagem.saveAsync({ format: SaveFormat.JPEG, compress: QUALIDADE_DICA });
+
+  const { size } = await (await fetch(foto.uri)).blob();
+  if (size > LIMITE_FOTO_DICA) {
+    throw new Error('Mesmo comprimida, a foto passou de 1 MB. Escolha outra.');
+  }
+  return { uri: foto.uri, tamanho: size };
 }
 
 const ESPERA_GPS_MS = 15000;
