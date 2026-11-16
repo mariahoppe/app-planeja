@@ -10,16 +10,25 @@ async function enviarArquivo(uri, caminho) {
     throw new Error('O envio de fotos não está configurado (faltam as chaves do Supabase no .env).');
   }
 
-  // Mesmo formato de um <input type="file"> num formulário web: o arquivo vai como parte do corpo.
-  const corpo = new FormData();
-  corpo.append('file', { uri, name: caminho.split('/').pop(), type: 'image/jpeg' });
+  // A foto vai como o próprio corpo da requisição (bytes do JPEG). Não dá para usar
+  // FormData com { uri }: no SDK 58 o fetch global é o expo/fetch, que não aceita esse formato.
+  let bytes;
+  try {
+    bytes = new Uint8Array(await (await fetch(uri)).arrayBuffer());
+  } catch {
+    throw new Error('Não foi possível ler a foto no aparelho. Escolha outra.');
+  }
 
   let resposta;
   try {
     resposta = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${caminho}`, {
       method: 'POST',
-      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` },
-      body: corpo,
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+        'Content-Type': 'image/jpeg',
+      },
+      body: bytes,
     });
   } catch {
     throw new Error('Não foi possível enviar a foto. Verifique sua internet.');
