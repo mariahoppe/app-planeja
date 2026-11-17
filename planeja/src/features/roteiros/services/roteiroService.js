@@ -1,6 +1,6 @@
 import { get, post, put, del } from '../../../api/api';
 
-// Lista os roteiros. "filtros" é opcional: { busca, status, destino_id, ordenar }.
+// Lista os roteiros. "filtros" é opcional: { busca, status, destino_id, ordenar, pagina, limite }.
 export function listar(filtros) {
   return get('/roteiros', filtros);
 }

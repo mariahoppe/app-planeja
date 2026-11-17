@@ -1,77 +1,103 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { StyleSheet, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
-import { Card } from '../../../components/atoms/Card';
+import { Input } from '../../../components/atoms/Input';
 import { EmptyState } from '../../../components/molecules/EmptyState';
+import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
+import { RodapeLista } from '../../../components/molecules/RodapeLista';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
-import { colors, fonts } from '../../../config/theme';
+import { useListaPaginada } from '../../../hooks/useListaPaginada';
+import { CartaoRoteiro } from '../components/CartaoRoteiro';
 import * as roteiroService from '../services/roteiroService';
+import { FILTROS_STATUS } from '../validacao';
 
+// Espera a pessoa parar de digitar antes de consultar a API.
+const ESPERA_BUSCA_MS = 400;
+
+/**
+ * Minhas viagens (RF-06): busca pelo título, filtro por status e a lista em
+ * páginas (RNF-04), da viagem mais próxima para a mais distante.
+ */
 export function RoteirosScreen({ navigation }) {
-  const [roteiros, setRoteiros] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(null);
+  const [busca, setBusca] = useState('');
+  const [termo, setTermo] = useState('');
+  const [status, setStatus] = useState('todos');
 
-  const carregar = useCallback(async () => {
-    try {
-      setCarregando(true);
-      setErro(null);
-      const dados = await roteiroService.listar();
-      setRoteiros(dados || []);
-    } catch (e) {
-      setErro(e.message);
-    } finally {
-      setCarregando(false);
-    }
-  }, []);
+  useEffect(() => {
+    const espera = setTimeout(() => setTermo(busca.trim()), ESPERA_BUSCA_MS);
+    return () => clearTimeout(espera);
+  }, [busca]);
 
-  // Recarrega sempre que a tela volta ao foco (ex.: depois de criar um roteiro).
+  const buscarPagina = useCallback(
+    (pagina, limite) => roteiroService.listar({ busca: termo || undefined, status, pagina, limite }),
+    [termo, status]
+  );
+  const { itens: roteiros, erro, temMais, carregandoMais, recarregar, carregarMais } = useListaPaginada(buscarPagina);
+
+  // Recarrega ao abrir, ao voltar (ex.: depois de criar ou editar) e quando busca ou filtro mudam.
   useFocusEffect(
     useCallback(() => {
-      carregar();
-    }, [carregar])
+      recarregar();
+    }, [recarregar])
   );
+
+  const filtrando = Boolean(termo) || status !== 'todos';
+  const novo = () => navigation.navigate('RoteiroForm');
 
   return (
     <ScreenTemplate
       sobretitulo="Minhas viagens"
       titulo="Roteiros"
-      direita={<Button titulo="+ Novo" pequeno onPress={() => navigation.navigate('RoteiroForm')} />}
+      direita={<Button titulo="+ Novo" pequeno onPress={novo} />}
+      aoChegarNoFim={carregarMais}
     >
-      {carregando ? (
-        <ActivityIndicator color={colors.acento} />
-      ) : erro ? (
-        <Text style={styles.erro}>{erro}</Text>
+      <Input
+        placeholder="Buscar pelo título"
+        value={busca}
+        onChangeText={setBusca}
+        autoCorrect={false}
+        returnKeyType="search"
+        accessibilityLabel="Buscar roteiro pelo título"
+      />
+
+      <View style={styles.filtros}>
+        {FILTROS_STATUS.map((f) => (
+          <Button
+            key={f.valor}
+            titulo={f.rotulo}
+            pequeno
+            variante={status === f.valor ? 'primario' : 'secundario'}
+            onPress={() => setStatus(f.valor)}
+          />
+        ))}
+      </View>
+
+      {erro || roteiros === null ? (
+        <EstadoCarga carregando={!erro} erro={erro} onTentarDeNovo={recarregar} />
       ) : roteiros.length === 0 ? (
-        <EmptyState
-          titulo="Nenhum roteiro ainda"
-          mensagem="Crie seu primeiro roteiro de viagem."
-          acao={
-            <Button
-              titulo="+ Criar roteiro"
-              variante="primario"
-              onPress={() => navigation.navigate('RoteiroForm')}
-            />
-          }
-        />
+        filtrando ? (
+          <EmptyState titulo="Nada encontrado" mensagem="Nenhuma viagem combina com a busca ou o filtro." />
+        ) : (
+          <EmptyState
+            titulo="Nenhum roteiro ainda"
+            mensagem="Crie a primeira viagem: escolha o destino, as datas e depois adicione as atividades."
+            acao={<Button titulo="+ Criar roteiro" variante="primario" onPress={novo} />}
+          />
+        )
       ) : (
-        roteiros.map((item) => (
-          <Card key={item.id} onPress={() => navigation.navigate('RoteiroDetalhe', { roteiro: item })}>
-            <Text style={styles.titulo}>{item.titulo}</Text>
-            <Text style={styles.sub}>
-              {item.destino?.cidade} · {item.status}
-            </Text>
-          </Card>
-        ))
+        <>
+          {roteiros.map((r) => (
+            <CartaoRoteiro key={r.id} roteiro={r} onPress={() => navigation.navigate('RoteiroDetalhe', { roteiro: r })} />
+          ))}
+          <RodapeLista temMais={temMais} carregando={carregandoMais} onCarregarMais={carregarMais} />
+        </>
       )}
     </ScreenTemplate>
   );
 }
 
 const styles = StyleSheet.create({
-  titulo: { fontFamily: fonts.tituloMedio, fontSize: 16, color: colors.tinta },
-  sub: { fontFamily: fonts.corpo, fontSize: 13, color: colors.suave },
-  erro: { fontFamily: fonts.corpo, fontSize: 14, color: colors.acento },
+  filtros: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
 });
