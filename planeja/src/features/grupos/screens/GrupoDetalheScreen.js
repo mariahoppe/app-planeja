@@ -4,7 +4,6 @@ import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { Card } from '../../../components/atoms/Card';
-import { EmptyState } from '../../../components/molecules/EmptyState';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
 import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
@@ -12,6 +11,7 @@ import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
 import { periodoCurto, STATUS_VIAGEM } from '../../inicio/formatos';
+import { AbaDespesas } from '../components/AbaDespesas';
 import { IntegranteItem } from '../components/IntegranteItem';
 import { nomeViagem, rotuloIntegrantes } from '../formatos';
 import * as grupoService from '../services/grupoService';
@@ -26,7 +26,7 @@ const ABAS = [
  * Tela do grupo (RF-19 e RF-20), com as abas do protótipo:
  * - Viagem: a viagem vinculada (abre o roteiro, que todos do grupo podem editar) e o código de convite.
  * - Integrantes: quem está no grupo; o criador pode remover pessoas.
- * - Despesas: o dinheiro da viagem.
+ * - Despesas: o que cada um pagou (RF-21, RF-22 e RF-25).
  * O criador renomeia ("Editar") e exclui o grupo; os demais podem sair dele.
  */
 export function GrupoDetalheScreen({ route, navigation }) {
@@ -207,7 +207,7 @@ export function GrupoDetalheScreen({ route, navigation }) {
       ) : null}
 
       {aba === 'despesas' ? (
-        <EmptyState titulo="Em construção" mensagem="As despesas e o acerto de contas do grupo chegam aqui em breve." />
+        <AbaDespesas grupo={grupo} usuarioId={usuario?.id} navigation={navigation} />
       ) : null}
     </ScreenTemplate>
   );
