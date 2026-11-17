@@ -1,5 +1,6 @@
 const { Op, fn, col, where: sqlWhere } = require('sequelize');
 const { Dica, DicaFoto, Usuario, sequelize } = require('../models');
+const { paginacao } = require('../utils/paginacao');
 const { AppError } = require('../utils/errorHandler');
 
 const MAX_FOTOS_POR_BLOCO = 4;
@@ -42,7 +43,8 @@ const listar = async (query) => {
   return Dica.findAll({
     where,
     include: [AUTOR, FOTOS],
-    order: [['created_at', 'DESC']]
+    order: [['created_at', 'DESC'], ['id', 'DESC']],
+    ...paginacao(query)
   });
 };
 

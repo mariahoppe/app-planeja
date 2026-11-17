@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { Destino } = require('../models');
+const { paginacao } = require('../utils/paginacao');
 const { AppError } = require('../utils/errorHandler');
 
 const listar = async (query, userId, isAdmin) => {
@@ -18,7 +19,7 @@ const listar = async (query, userId, isAdmin) => {
     where.escopo = query.escopo;
   }
 
-  return Destino.findAll({ where, order: [['created_at', 'DESC']] });
+  return Destino.findAll({ where, order: [['created_at', 'DESC'], ['id', 'DESC']], ...paginacao(query) });
 };
 
 const buscarPorId = async (id, userId, isAdmin) => {

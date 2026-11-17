@@ -1,6 +1,6 @@
 import { get, post, put, del } from '../../../api/api';
 
-// Lista os destinos. "filtros" é opcional: { busca, escopo } (escopo: todos | nacional | internacional).
+// Lista os destinos. "filtros" é opcional: { busca, escopo, pagina, limite } (escopo: todos | nacional | internacional).
 export function listar(filtros) {
   return get('/destinos', filtros);
 }

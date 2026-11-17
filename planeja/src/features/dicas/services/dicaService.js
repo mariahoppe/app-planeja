@@ -3,8 +3,9 @@ import { del, get, post, put } from '../../../api/api';
 // Dicas de todos os usuários, da mais recente para a mais antiga.
 // "filtro": { busca, escopo }. A API compara sem acento e sem maiúsculas, na cidade e no país;
 // escopo 'todos' (ou vazio) não filtra.
-export function listar({ busca, escopo } = {}) {
-  return get('/dicas', { busca, escopo });
+// pagina/limite: opcionais (RNF-04); sem eles a API devolve todas.
+export function listar({ busca, escopo, pagina, limite } = {}) {
+  return get('/dicas', { busca, escopo, pagina, limite });
 }
 
 // Uma dica com o autor ({ id, nome, foto_url }) e as fotos ({ id, bloco, url, legenda, ordem }).

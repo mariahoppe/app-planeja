@@ -254,6 +254,10 @@ Usuários com perfil `admin` têm acesso a todos os recursos.
 
 ## Formato das Respostas
 
+### Paginação (opcional)
+
+`GET /api/dicas`, `GET /api/destinos` e `GET /api/roteiros` aceitam `?pagina=1&limite=20` (limite máximo 50). Sem `limite`, a lista vem inteira, como antes. A resposta continua sendo o array: quando a página vem com menos itens que o limite, acabou.
+
 ### Sucesso
 
 ```json

@@ -1,14 +1,16 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { Card } from '../../../components/atoms/Card';
 import { Input } from '../../../components/atoms/Input';
 import { EmptyState } from '../../../components/molecules/EmptyState';
-import { ErrorMessage } from '../../../components/molecules/ErrorMessage';
+import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
+import { RodapeLista } from '../../../components/molecules/RodapeLista';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
+import { useListaPaginada } from '../../../hooks/useListaPaginada';
 import * as destinoService from '../services/destinoService';
 import { rotuloEscopo } from '../validacao';
 
@@ -19,10 +21,6 @@ const FILTROS = [
 ];
 
 export function DestinosScreen({ navigation }) {
-  const [destinos, setDestinos] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(null);
-
   const [busca, setBusca] = useState('');
   const [buscaAplicada, setBuscaAplicada] = useState('');
   const [escopo, setEscopo] = useState('todos');
@@ -33,19 +31,12 @@ export function DestinosScreen({ navigation }) {
     return () => clearTimeout(espera);
   }, [busca]);
 
-  const carregar = useCallback(async () => {
-    try {
-      setErro(null);
-      const filtros = { escopo };
-      if (buscaAplicada) filtros.busca = buscaAplicada;
-      const dados = await destinoService.listar(filtros);
-      setDestinos(dados || []);
-    } catch (e) {
-      setErro(e.message);
-    } finally {
-      setCarregando(false);
-    }
-  }, [buscaAplicada, escopo]);
+  const buscarPagina = useCallback(
+    (pagina, limite) => destinoService.listar({ escopo, busca: buscaAplicada || undefined, pagina, limite }),
+    [buscaAplicada, escopo]
+  );
+  const { itens: destinos, erro, temMais, carregandoMais, recarregar: carregar, carregarMais } =
+    useListaPaginada(buscarPagina);
 
   // Recarrega ao voltar ao foco (ex.: depois de salvar) e quando a busca ou o filtro mudam.
   useFocusEffect(
@@ -62,6 +53,7 @@ export function DestinosScreen({ navigation }) {
       sobretitulo="Para onde vou"
       titulo="Destinos"
       direita={<Button titulo="+ Novo" pequeno onPress={abrirNovo} />}
+      aoChegarNoFim={carregarMais}
     >
       <Input
         placeholder="Buscar cidade ou país"
@@ -84,13 +76,8 @@ export function DestinosScreen({ navigation }) {
         ))}
       </View>
 
-      {carregando ? (
-        <ActivityIndicator color={colors.acento} />
-      ) : erro ? (
-        <>
-          <ErrorMessage mensagem={erro} />
-          <Button titulo="Tentar de novo" onPress={carregar} />
-        </>
+      {erro || destinos === null ? (
+        <EstadoCarga carregando={!erro} erro={erro} onTentarDeNovo={carregar} />
       ) : destinos.length === 0 ? (
         filtrando ? (
           <EmptyState titulo="Nada encontrado" mensagem="Nenhum destino combina com a busca ou o filtro." />
@@ -102,7 +89,8 @@ export function DestinosScreen({ navigation }) {
           />
         )
       ) : (
-        destinos.map((item) => (
+        <>
+        {destinos.map((item) => (
           <Card key={item.id} onPress={() => navigation.navigate('DestinoForm', { destino: item })}>
             <View style={styles.linhaCard}>
               <Text style={styles.cidade}>{item.cidade}</Text>
@@ -113,7 +101,9 @@ export function DestinosScreen({ navigation }) {
               {item.periodo ? ` · ${item.periodo}` : ''}
             </Text>
           </Card>
-        ))
+        ))}
+        <RodapeLista temMais={temMais} carregando={carregandoMais} onCarregarMais={carregarMais} />
+        </>
       )}
     </ScreenTemplate>
   );
