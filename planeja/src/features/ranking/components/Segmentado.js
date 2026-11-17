@@ -15,6 +15,7 @@ export function Segmentado({ opcoes, valor, onChange }) {
           <Pressable
             key={o.valor}
             onPress={() => onChange(o.valor)}
+            hitSlop={3}
             accessibilityRole="tab"
             accessibilityState={{ selected: ativo }}
             style={[styles.opcao, ativo && styles.opcaoAtiva]}

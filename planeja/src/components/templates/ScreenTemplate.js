@@ -3,22 +3,31 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fonts } from '../../config/theme';
 
+// Quantos pontos antes do fim a próxima página já começa a carregar.
+const DISTANCIA_DO_FIM = 300;
+
 /**
  * Esqueleto das telas do Planeja: cabeçalho fixo (sobretítulo, título grande,
  * voltar e ação opcionais) e um corpo rolável. Nenhum dado mora aqui.
  * sobretitulo: texto pequeno acima do título (ex.: "Comunidade").
  * direita: elemento à direita do título (ex.: um Button pequeno "Editar").
  * aoVoltar: quando informado, mostra "‹ Voltar" e chama a função ao tocar.
+ * aoChegarNoFim: chamada quando a rolagem chega perto do fim (listas paginadas, RNF-04).
  * Precisa de um SafeAreaProvider na raiz do app (App.js).
  */
-export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, children }) {
+export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChegarNoFim, children }) {
   const margens = useSafeAreaInsets();
+
+  function aoRolar({ nativeEvent }) {
+    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - DISTANCIA_DO_FIM) aoChegarNoFim();
+  }
 
   return (
     <View style={styles.tela}>
       <View style={[styles.cabecalho, { paddingTop: margens.top + 12 }]}>
         {aoVoltar ? (
-          <Pressable onPress={aoVoltar} hitSlop={12} accessibilityRole="button" style={styles.voltar}>
+          <Pressable onPress={aoVoltar} hitSlop={12} accessibilityRole="button" accessibilityLabel="Voltar" style={styles.voltar}>
             <Text style={styles.voltarTexto}>‹ Voltar</Text>
           </Pressable>
         ) : null}
@@ -36,6 +45,8 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, childre
       <ScrollView
         contentContainerStyle={[styles.corpo, { paddingBottom: margens.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
+        onScroll={aoChegarNoFim ? aoRolar : undefined}
+        scrollEventThrottle={aoChegarNoFim ? 200 : undefined}
       >
         {children}
       </ScrollView>

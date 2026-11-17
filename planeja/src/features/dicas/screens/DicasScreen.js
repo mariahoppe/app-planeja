@@ -1,5 +1,5 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
@@ -7,9 +7,11 @@ import { Button } from '../../../components/atoms/Button';
 import { Input } from '../../../components/atoms/Input';
 import { EmptyState } from '../../../components/molecules/EmptyState';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
+import { RodapeLista } from '../../../components/molecules/RodapeLista';
 import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
+import { useListaPaginada } from '../../../hooks/useListaPaginada';
 import { ESCOPOS } from '../../destinos/validacao';
 import { CartaoDica } from '../components/CartaoDica';
 import * as dicaService from '../services/dicaService';
@@ -31,9 +33,6 @@ export function DicasScreen({ route, navigation }) {
   const [termo, setTermo] = useState(filtroInicial?.busca?.trim() ?? ''); // o que já foi pesquisado
   const [escopo, setEscopo] = useState(filtroInicial?.escopo ?? 'todos');
   const [filtroAberto, setFiltroAberto] = useState(false);
-  const [dicas, setDicas] = useState(null); // null = ainda carregando
-  const [erro, setErro] = useState(null);
-  const ultimaBusca = useRef(0);
 
   // RF-16: cada toque num destino do Ranking traz um filtro novo, mesmo com a aba já aberta.
   useEffect(() => {
@@ -51,22 +50,13 @@ export function DicasScreen({ route, navigation }) {
     return () => clearTimeout(espera);
   }, [busca]);
 
-  // Busca ou filtro novo: o indicador de carregamento fica no lugar da lista antiga até a resposta chegar.
-  useEffect(() => {
-    setDicas(null);
-  }, [termo, escopo]);
-
-  const carregar = useCallback(async () => {
-    const numero = ++ultimaBusca.current;
-    try {
-      setErro(null);
-      const lista = await dicaService.listar({ busca: termo || undefined, escopo });
-      // Uma busca antiga que responda depois da nova não pode trocar o resultado.
-      if (numero === ultimaBusca.current) setDicas(lista || []);
-    } catch (e) {
-      if (numero === ultimaBusca.current) setErro(e.message);
-    }
-  }, [termo, escopo]);
+  // Busca ou filtro novo recomeça a lista (o hook mostra o carregamento no lugar da antiga).
+  const buscarPagina = useCallback(
+    (pagina, limite) => dicaService.listar({ busca: termo || undefined, escopo, pagina, limite }),
+    [termo, escopo]
+  );
+  const { itens: dicas, erro, temMais, carregandoMais, recarregar: carregar, carregarMais } =
+    useListaPaginada(buscarPagina);
 
   // Busca ao abrir a aba, ao voltar para ela (ex.: depois de publicar) e quando busca ou filtro mudam.
   useFocusEffect(
@@ -90,7 +80,7 @@ export function DicasScreen({ route, navigation }) {
   const filtrando = escopo !== 'todos';
 
   return (
-    <ScreenTemplate sobretitulo="Comunidade" titulo="Dicas">
+    <ScreenTemplate sobretitulo="Comunidade" titulo="Dicas" aoChegarNoFim={carregarMais}>
       <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => publicar()} />
 
       <View style={styles.buscaLinha}>
@@ -132,7 +122,9 @@ export function DicasScreen({ route, navigation }) {
         <>
           <View style={styles.resumo}>
             <Text style={styles.resumoTexto}>
-              {termo ? `${dicas.length} ${dicas.length === 1 ? 'dica' : 'dicas'} para “${termo}”` : 'Dicas mais recentes'}
+              {termo
+                ? `${dicas.length}${temMais ? '+' : ''} ${dicas.length === 1 ? 'dica' : 'dicas'} para “${termo}”`
+                : 'Dicas mais recentes'}
             </Text>
             {termo ? (
               <Pressable onPress={limpar} hitSlop={12} accessibilityRole="button">
@@ -156,6 +148,7 @@ export function DicasScreen({ route, navigation }) {
               <CartaoDica key={d.id} dica={d} onPress={() => navigation.navigate('DicaDetalhe', { dica: d })} />
             ))
           )}
+          <RodapeLista temMais={temMais} carregando={carregandoMais} onCarregarMais={carregarMais} />
         </>
       )}
     </ScreenTemplate>
