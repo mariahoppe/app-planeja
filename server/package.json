@@ -24,6 +24,9 @@
   "author": "mariahoppe",
   "type": "commonjs",
   "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
