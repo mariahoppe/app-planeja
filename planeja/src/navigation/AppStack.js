@@ -2,6 +2,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AtividadeFormScreen } from '../features/atividades/screens/AtividadeFormScreen';
 import { DestinoFormScreen } from '../features/destinos/screens/DestinoFormScreen';
+import { GrupoFormScreen } from '../features/grupos/screens/GrupoFormScreen';
 import { ConfiguracoesScreen } from '../features/perfil/screens/ConfiguracoesScreen';
 import { PerfilScreen } from '../features/perfil/screens/PerfilScreen';
 import { AvaliacaoFormScreen } from '../features/ranking/screens/AvaliacaoFormScreen';
@@ -28,6 +29,7 @@ export function AppStack() {
       <Stack.Screen name="DestinoForm" component={DestinoFormScreen} />
       <Stack.Screen name="AvaliacaoForm" component={AvaliacaoFormScreen} />
       <Stack.Screen name="MinhasAvaliacoes" component={MinhasAvaliacoesScreen} />
+      <Stack.Screen name="GrupoForm" component={GrupoFormScreen} />
     </Stack.Navigator>
   );
 }
