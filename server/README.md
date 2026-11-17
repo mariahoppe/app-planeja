@@ -61,6 +61,18 @@ npm start
 
 Verificar se está rodando: `GET http://localhost:3000/health`
 
+## Publicar no Render (plano gratuito)
+
+O `render.yaml` na raiz do repositório descreve o serviço.
+
+1. No [Render](https://render.com): **New → Blueprint**, escolha este repositório e confirme o serviço `planeja-api`.
+2. Preencha as variáveis pedidas no painel (as mesmas do `.env`): `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN` e as `SMTP_*`. `TRUST_PROXY`, `RATE_LIMIT_MAX` e `NODE_ENV` já vêm do blueprint.
+3. Depois do deploy, confira `https://<serviço>.onrender.com/health`.
+4. O plano gratuito dorme depois de 15 min sem uso e leva uns 30-50 s para acordar. Para a apresentação, crie um ping a cada 10 min no `/health` (ex.: cron-job.org).
+5. No app, troque `EXPO_PUBLIC_API_URL` no `planeja/.env` para `https://<serviço>.onrender.com` e gere o APK.
+
+O deploy é manual (`autoDeploy: false`): use **Manual Deploy** no painel depois de cada merge na `main`.
+
 ## Comandos do Banco
 
 ```bash

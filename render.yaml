@@ -1,0 +1,41 @@
+# Blueprint do Render para a API do Planeja (plano gratuito).
+# No painel: New > Blueprint > este repositório. Os valores com sync: false
+# são pedidos no painel na primeira vez (não ficam no Git).
+services:
+  - type: web
+    name: planeja-api
+    runtime: node
+    plan: free
+    region: virginia
+    rootDir: server
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: false
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "22"
+      - key: TRUST_PROXY
+        value: "1"
+      - key: RATE_LIMIT_MAX
+        value: "1000"
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: MAIL_FROM
+        value: Planeja <nao-responda@planeja.app>

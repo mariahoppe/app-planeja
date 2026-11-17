@@ -7,6 +7,12 @@ const { handleSequelizeError } = require('./utils/errorHandler');
 
 const app = express();
 
+// Em produção a API fica atrás do proxy do Render: sem isso todo pedido parece
+// vir do IP do proxy (o rate limit trataria todo mundo como uma pessoa só).
+if (process.env.TRUST_PROXY) {
+  app.set('trust proxy', Number(process.env.TRUST_PROXY) || process.env.TRUST_PROXY);
+}
+
 app.use(helmet());
 app.use(geral);
 
