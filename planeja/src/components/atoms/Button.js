@@ -26,7 +26,10 @@ export function Button({
     <Pressable
       onPress={onPress}
       disabled={inativo}
+      // O pequeno tem 36pt de altura; o hitSlop completa os 44pt de toque (RNF-03).
+      hitSlop={pequeno ? 4 : undefined}
       accessibilityRole="button"
+      accessibilityState={{ disabled: inativo, busy: carregando }}
       style={({ pressed }) => [
         styles.base,
         primario ? styles.primario : styles.secundario,

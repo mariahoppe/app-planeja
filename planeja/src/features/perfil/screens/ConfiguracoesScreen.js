@@ -123,6 +123,7 @@ export function ConfiguracoesScreen({ navigation }) {
               value={preferencias?.[opcao.id] ?? false}
               onValueChange={opcao.aoMudar}
               disabled={!preferencias}
+              accessibilityLabel={opcao.titulo}
               trackColor={{ true: colors.acento, false: colors.linha }}
               thumbColor={colors.branco}
             />

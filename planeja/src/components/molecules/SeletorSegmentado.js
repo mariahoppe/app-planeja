@@ -15,6 +15,7 @@ export function SeletorSegmentado({ opcoes, valor, onChange }) {
           <Pressable
             key={o.valor}
             onPress={() => onChange(o.valor)}
+            hitSlop={3}
             accessibilityRole="tab"
             accessibilityState={{ selected: marcada }}
             style={[styles.opcao, marcada && styles.opcaoMarcada]}

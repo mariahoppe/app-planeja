@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: colors.suave,
   },
-  celula: { flex: 1, minHeight: 38 },
+  celula: { flex: 1, minHeight: 44 },
   dia: { alignItems: 'center', justifyContent: 'center', borderRadius: 9 },
   diaSelecionado: { backgroundColor: colors.acento },
   diaTexto: { fontFamily: fonts.corpo, fontSize: 13.5, color: colors.tinta },

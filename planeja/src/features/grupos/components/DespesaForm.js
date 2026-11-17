@@ -215,6 +215,6 @@ const styles = StyleSheet.create({
   },
   nome: { flex: 1, fontFamily: fonts.corpoSemi, fontSize: 14, color: colors.tinta },
   parte: { fontFamily: fonts.mono, fontSize: 13.5, color: colors.tinta },
-  campoParte: { width: 110, minHeight: 38, paddingVertical: 7, textAlign: 'right', fontFamily: fonts.mono },
+  campoParte: { width: 110, minHeight: 44, paddingVertical: 10, textAlign: 'right', fontFamily: fonts.mono },
   soma: { fontFamily: fonts.mono, fontSize: 12, color: colors.suave, textAlign: 'right', marginTop: 6 },
 });
