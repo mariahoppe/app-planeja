@@ -24,7 +24,8 @@ export function DespesaItem({ despesa, usuarioId, onPress }) {
       </View>
       <Text style={styles.categoria}>{rotuloCategoria(despesa.categoria)}</Text>
       <Text style={styles.sub}>
-        {dataBR(despesa.data)} · pago por {pagador}
+        {dataBR(despesa.data)} · pago por{' '}
+        <Text style={despesa.pagador_id === usuarioId ? styles.voce : null}>{pagador}</Text>
         {divisao}
       </Text>
     </Card>
@@ -43,4 +44,5 @@ const styles = StyleSheet.create({
     color: colors.acento,
   },
   sub: { fontFamily: fonts.corpo, fontSize: 12.5, color: colors.suave },
+  voce: { fontFamily: fonts.corpoForte, color: colors.tinta },
 });
