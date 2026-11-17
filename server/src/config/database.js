@@ -9,7 +9,8 @@ const baseConfig = {
     underscored: true,
     freezeTableName: false
   },
-  dialectOptions: {
+  // DB_SSL=false desliga o SSL (redes que bloqueiam o Postgres criptografado). Padrão: ligado.
+  dialectOptions: process.env.DB_SSL === 'false' ? {} : {
     ssl: {
       require: true,
       rejectUnauthorized: false
