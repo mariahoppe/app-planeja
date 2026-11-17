@@ -1,6 +1,7 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import { AtividadeFormScreen } from '../features/atividades/screens/AtividadeFormScreen';
+import { DespesaFormScreen } from '../features/grupos/screens/DespesaFormScreen';
 import { DestinoFormScreen } from '../features/destinos/screens/DestinoFormScreen';
 import { DicaDetalheScreen } from '../features/dicas/screens/DicaDetalheScreen';
 import { DicaFormScreen } from '../features/dicas/screens/DicaFormScreen';
@@ -36,6 +37,7 @@ export function AppStack() {
       <Stack.Screen name="DicaForm" component={DicaFormScreen} />
       <Stack.Screen name="GrupoForm" component={GrupoFormScreen} />
       <Stack.Screen name="GrupoDetalhe" component={GrupoDetalheScreen} />
+      <Stack.Screen name="DespesaForm" component={DespesaFormScreen} />
     </Stack.Navigator>
   );
 }
