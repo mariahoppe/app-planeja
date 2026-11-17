@@ -6,23 +6,25 @@ import { Button } from '../../../components/atoms/Button';
 import { EmptyState } from '../../../components/molecules/EmptyState';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
 import { colors, fonts } from '../../../config/theme';
-import { moeda } from '../formatos';
 import * as despesaService from '../services/despesaService';
 import { DespesaItem } from './DespesaItem';
+import { ResumoContas } from './ResumoContas';
 
 /**
- * Aba Despesas do grupo: lista os lançamentos (mais recentes primeiro) e abre o
- * formulário para registrar, editar ou excluir. Recarrega ao voltar do formulário.
+ * Aba Despesas do grupo: totais e acerto de contas (RF-23 e RF-24) no topo e,
+ * embaixo, os lançamentos (mais recentes primeiro), que abrem o formulário para
+ * editar ou excluir. Uma só chamada (GET /contas) traz tudo já recalculado;
+ * recarrega ao voltar do formulário.
  */
 export function AbaDespesas({ grupo, usuarioId, navigation }) {
-  const [despesas, setDespesas] = useState(null);
+  const [contas, setContas] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
   const carregar = useCallback(async () => {
     try {
       setErro(null);
-      setDespesas(await despesaService.listar(grupo.id));
+      setContas(await despesaService.contas(grupo.id));
     } catch (e) {
       setErro(e.message);
     } finally {
@@ -39,31 +41,28 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
   const nova = () => navigation.navigate('DespesaForm', { grupo });
   const abrir = (despesa) => navigation.navigate('DespesaForm', { grupo, despesa });
 
-  if (!despesas) {
+  if (!contas) {
     return <EstadoCarga carregando={carregando} erro={erro} onTentarDeNovo={carregar} />;
   }
+
+  const despesas = contas.despesas || [];
 
   if (despesas.length === 0) {
     return (
       <EmptyState
         titulo="Nenhuma despesa ainda"
-        mensagem="Registre o que cada um pagou na viagem; o app divide entre os integrantes."
+        mensagem="Registre o que cada um pagou na viagem; o app divide entre os integrantes e mostra quem deve para quem."
         acao={<Button titulo="+ Nova despesa" variante="primario" onPress={nova} />}
       />
     );
   }
 
-  const total = despesas.reduce((s, d) => s + Number(d.valor), 0);
-
   return (
     <View style={styles.container}>
+      <ResumoContas contas={contas} totalDespesas={despesas.length} usuarioId={usuarioId} />
+
       <View style={styles.cabecalho}>
-        <View>
-          <Text style={styles.rotulo}>
-            {despesas.length} {despesas.length === 1 ? 'despesa' : 'despesas'}
-          </Text>
-          <Text style={styles.total}>{moeda(total)}</Text>
-        </View>
+        <Text style={styles.rotulo}>Lançamentos</Text>
         <Button titulo="+ Nova despesa" variante="primario" pequeno onPress={nova} />
       </View>
 
@@ -76,7 +75,7 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
 
 const styles = StyleSheet.create({
   container: { gap: 10 },
-  cabecalho: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between' },
+  cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
   rotulo: {
     fontFamily: fonts.corpoForte,
     fontSize: 10,
@@ -84,5 +83,4 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.tenue,
   },
-  total: { fontFamily: fonts.monoMedio, fontSize: 20, color: colors.tinta },
 });
