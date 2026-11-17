@@ -43,9 +43,11 @@ export function GruposScreen({ navigation }) {
 
   const abrirNovo = () => navigation.navigate('GrupoForm');
 
+  const abrirGrupo = (grupo) => navigation.navigate('GrupoDetalhe', { id: grupo.id });
+
   function aoEntrar(grupo) {
     toast(`Você entrou em ${grupo.nome}.`);
-    carregar();
+    abrirGrupo(grupo);
   }
 
   return (
@@ -66,7 +68,7 @@ export function GruposScreen({ navigation }) {
         <>
           <Text style={styles.secao}>Meus grupos</Text>
           {grupos.map((g) => (
-            <CartaoGrupo key={g.id} grupo={g} />
+            <CartaoGrupo key={g.id} grupo={g} onPress={() => abrirGrupo(g)} />
           ))}
         </>
       )}

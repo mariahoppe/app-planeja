@@ -16,20 +16,25 @@ import { MAX_NOME_GRUPO, validarGrupo } from '../validacao';
  * Criar grupo (RF-17): nome + a viagem a que ele se vincula. A API gera o
  * código de convite. Só aparecem as viagens da própria pessoa que ainda não
  * têm grupo (cada viagem pode ter um grupo só).
+ * Com route.params.grupo, renomeia o grupo (RF-20, só o criador): a viagem não muda.
  */
-export function GrupoFormScreen({ navigation }) {
+export function GrupoFormScreen({ route, navigation }) {
+  const grupo = route.params?.grupo;
+  const editando = Boolean(grupo);
   const toast = useToast();
-  const [nome, setNome] = useState('');
-  const [roteiroId, setRoteiroId] = useState(null);
+
+  const [nome, setNome] = useState(grupo?.nome ?? '');
+  const [roteiroId, setRoteiroId] = useState(grupo?.roteiro_id ?? null);
 
   const [viagens, setViagens] = useState([]);
-  const [carregando, setCarregando] = useState(true);
+  const [carregando, setCarregando] = useState(!editando);
   const [erroCarga, setErroCarga] = useState(null);
 
   const [erros, setErros] = useState({});
   const [salvando, setSalvando] = useState(false);
 
   const carregarViagens = useCallback(async () => {
+    if (editando) return;
     try {
       setErroCarga(null);
       const lista = await roteiroService.listar();
@@ -39,7 +44,7 @@ export function GrupoFormScreen({ navigation }) {
     } finally {
       setCarregando(false);
     }
-  }, []);
+  }, [editando]);
 
   // Recarrega ao voltar (ex.: depois de criar um roteiro pelo atalho "+ Criar roteiro").
   useFocusEffect(
@@ -48,22 +53,25 @@ export function GrupoFormScreen({ navigation }) {
     }, [carregarViagens])
   );
 
-  async function criar() {
+  async function salvar() {
     const e = validarGrupo({ nome, roteiroId });
     setErros(e);
     if (Object.keys(e).length > 0) return;
 
     try {
       setSalvando(true);
-      const grupo = await grupoService.criar({ nome: nome.trim(), roteiro_id: roteiroId });
-      toast('Grupo criado.');
-      navigation.goBack(); // a lista recarrega sozinha ao voltar
-      Alert.alert(
-        'Convide o pessoal',
-        `O código de convite do grupo é ${grupo.codigo_convite}. Quem tiver o código entra pela aba Grupos.`
-      );
+      if (editando) {
+        await grupoService.atualizar(grupo.id, { nome: nome.trim() });
+        toast('Grupo renomeado.');
+        navigation.goBack(); // o detalhe recarrega sozinho ao voltar
+      } else {
+        const novo = await grupoService.criar({ nome: nome.trim(), roteiro_id: roteiroId });
+        toast('Grupo criado. Compartilhe o código de convite.');
+        // Troca o formulário pelo grupo novo: o "Voltar" de lá leva direto à lista.
+        navigation.replace('GrupoDetalhe', { id: novo.id });
+      }
     } catch (err) {
-      Alert.alert('Não foi possível criar o grupo', err.message);
+      Alert.alert(editando ? 'Não foi possível salvar' : 'Não foi possível criar o grupo', err.message);
     } finally {
       setSalvando(false);
     }
@@ -75,7 +83,11 @@ export function GrupoFormScreen({ navigation }) {
   }
 
   return (
-    <ScreenTemplate sobretitulo="Viagens em grupo" titulo="Novo grupo" aoVoltar={() => navigation.goBack()}>
+    <ScreenTemplate
+      sobretitulo={editando ? 'Editar grupo' : 'Viagens em grupo'}
+      titulo={editando ? grupo.nome : 'Novo grupo'}
+      aoVoltar={() => navigation.goBack()}
+    >
       <FormField
         label="Nome do grupo"
         placeholder="Família em Lisboa"
@@ -85,42 +97,44 @@ export function GrupoFormScreen({ navigation }) {
         erro={erros.nome}
       />
 
-      <FormField
-        label="Viagem"
-        erro={erros.roteiro}
-        dica="Todos do grupo vão poder ver e editar o roteiro e as atividades dessa viagem"
-      >
-        {carregando || erroCarga ? (
-          <EstadoCarga carregando={carregando} erro={erroCarga} onTentarDeNovo={carregarViagens} />
-        ) : viagens.length === 0 ? (
-          <View style={styles.semViagem}>
-            <Text style={styles.semViagemTexto}>
-              Você não tem viagens livres. Cada viagem pode ter um grupo só; crie um roteiro novo para vincular.
-            </Text>
-            <Button titulo="+ Criar roteiro" pequeno onPress={() => navigation.navigate('RoteiroForm')} />
-          </View>
-        ) : (
-          <View style={styles.opcoes}>
-            {viagens.map((r) => (
-              <Button
-                key={r.id}
-                titulo={r.destino?.cidade ? `${r.titulo} · ${r.destino.cidade}` : r.titulo}
-                pequeno
-                variante={roteiroId === r.id ? 'primario' : 'secundario'}
-                onPress={() => escolher(r.id)}
-              />
-            ))}
-          </View>
-        )}
-      </FormField>
+      {editando ? null : (
+        <FormField
+          label="Viagem"
+          erro={erros.roteiro}
+          dica="Todos do grupo vão poder ver e editar o roteiro e as atividades dessa viagem"
+        >
+          {carregando || erroCarga ? (
+            <EstadoCarga carregando={carregando} erro={erroCarga} onTentarDeNovo={carregarViagens} />
+          ) : viagens.length === 0 ? (
+            <View style={styles.semViagem}>
+              <Text style={styles.semViagemTexto}>
+                Você não tem viagens livres. Cada viagem pode ter um grupo só; crie um roteiro novo para vincular.
+              </Text>
+              <Button titulo="+ Criar roteiro" pequeno onPress={() => navigation.navigate('RoteiroForm')} />
+            </View>
+          ) : (
+            <View style={styles.opcoes}>
+              {viagens.map((r) => (
+                <Button
+                  key={r.id}
+                  titulo={r.destino?.cidade ? `${r.titulo} · ${r.destino.cidade}` : r.titulo}
+                  pequeno
+                  variante={roteiroId === r.id ? 'primario' : 'secundario'}
+                  onPress={() => escolher(r.id)}
+                />
+              ))}
+            </View>
+          )}
+        </FormField>
+      )}
 
       <Button
-        titulo="Criar grupo"
+        titulo={editando ? 'Salvar alterações' : 'Criar grupo'}
         variante="primario"
         bloco
         carregando={salvando}
         desabilitado={carregando}
-        onPress={criar}
+        onPress={salvar}
       />
     </ScreenTemplate>
   );
