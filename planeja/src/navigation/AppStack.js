@@ -4,6 +4,7 @@ import { AtividadeFormScreen } from '../features/atividades/screens/AtividadeFor
 import { DestinoFormScreen } from '../features/destinos/screens/DestinoFormScreen';
 import { DicaDetalheScreen } from '../features/dicas/screens/DicaDetalheScreen';
 import { DicaFormScreen } from '../features/dicas/screens/DicaFormScreen';
+import { GrupoDetalheScreen } from '../features/grupos/screens/GrupoDetalheScreen';
 import { GrupoFormScreen } from '../features/grupos/screens/GrupoFormScreen';
 import { ConfiguracoesScreen } from '../features/perfil/screens/ConfiguracoesScreen';
 import { PerfilScreen } from '../features/perfil/screens/PerfilScreen';
@@ -34,6 +35,7 @@ export function AppStack() {
       <Stack.Screen name="DicaDetalhe" component={DicaDetalheScreen} />
       <Stack.Screen name="DicaForm" component={DicaFormScreen} />
       <Stack.Screen name="GrupoForm" component={GrupoFormScreen} />
+      <Stack.Screen name="GrupoDetalhe" component={GrupoDetalheScreen} />
     </Stack.Navigator>
   );
 }
