@@ -17,3 +17,10 @@ export const API_URL =
   });
 
 export const API_PREFIX = `${API_URL}/api`;
+
+/**
+ * Fotos das dicas: vão para o bucket "dicas" do Supabase Storage, e a API guarda só o endereço.
+ * A anon key é pública por natureza (fica dentro do app): o bucket só deixa enviar arquivos.
+ */
+export const SUPABASE_URL = (process.env.EXPO_PUBLIC_SUPABASE_URL || '').replace(/\/$/, '');
+export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY || '';
