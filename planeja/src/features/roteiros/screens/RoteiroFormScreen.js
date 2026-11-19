@@ -1,18 +1,22 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useState } from 'react';
-import { Alert, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { Input } from '../../../components/atoms/Input';
 import { DatePicker } from '../../../components/molecules/DatePicker';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
 import { FormField } from '../../../components/molecules/FormField';
+import { PainelInferior } from '../../../components/molecules/PainelInferior';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
-import { colors, fonts } from '../../../config/theme';
+import { colors, fonts, radius } from '../../../config/theme';
 import { useToast } from '../../../contexts/ToastContext';
 import * as destinoService from '../../destinos/services/destinoService';
 import * as roteiroService from '../services/roteiroService';
 import { MAX_TITULO, STATUS, validarRoteiro } from '../validacao';
+
+// "Lisboa · Portugal": só a cidade fica ambígua quando há cidades com o mesmo nome.
+const rotuloDestino = (d) => [d?.cidade, d?.pais].filter(Boolean).join(' · ');
 
 /**
  * Criar e editar roteiro (RF-06). Com route.params.roteiro, abre preenchido.
@@ -38,6 +42,20 @@ export function RoteiroFormScreen({ route, navigation }) {
   const [erroDestinos, setErroDestinos] = useState(null);
   const [salvando, setSalvando] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
+  const [escolhendoDestino, setEscolhendoDestino] = useState(false);
+
+  const destinoEscolhido = destinos?.find((d) => d.id === destinoId) ?? (destinoId ? roteiro?.destino : null);
+
+  function escolherDestino(id) {
+    setDestinoId(id);
+    limparErro('destino');
+    setEscolhendoDestino(false);
+  }
+
+  function cadastrarDestino() {
+    setEscolhendoDestino(false);
+    navigation.navigate('DestinoForm');
+  }
 
   const carregarDestinos = useCallback(async () => {
     if (!souDono) return;
@@ -96,7 +114,9 @@ export function RoteiroFormScreen({ route, navigation }) {
               setExcluindo(true);
               await roteiroService.excluir(roteiro.id);
               toast('Roteiro excluído.');
-              navigation.pop(2); // sai do formulário e do detalhe do roteiro apagado
+              // Volta às abas: o detalhe do roteiro sumiu e, se ele foi aberto pelo grupo,
+              // o grupo também (é apagado junto). As listas recarregam ao ganhar o foco.
+              navigation.popToTop();
             } catch (err) {
               Alert.alert('Não foi possível excluir', err.message);
               setExcluindo(false);
@@ -128,30 +148,57 @@ export function RoteiroFormScreen({ route, navigation }) {
         dica={souDono ? null : 'Só quem criou a viagem pode trocar o destino'}
       >
         {!souDono ? (
-          <Text style={styles.fixo}>
-            {[roteiro.destino?.cidade, roteiro.destino?.pais].filter(Boolean).join(', ')}
-          </Text>
+          <Text style={styles.fixo}>{rotuloDestino(roteiro.destino)}</Text>
         ) : destinos === null || erroDestinos ? (
           <EstadoCarga carregando={!erroDestinos} erro={erroDestinos} onTentarDeNovo={carregarDestinos} />
         ) : destinos.length === 0 ? (
           <View style={styles.semDestino}>
             <Text style={styles.semDestinoTexto}>Cadastre primeiro a cidade para onde você vai.</Text>
-            <Button titulo="+ Cadastrar destino" pequeno onPress={() => navigation.navigate('DestinoForm')} />
+            <Button titulo="+ Cadastrar destino" pequeno onPress={cadastrarDestino} />
           </View>
         ) : (
-          <View style={styles.opcoes}>
-            {destinos.map((d) => (
-              <Button
-                key={d.id}
-                titulo={d.cidade}
-                pequeno
-                variante={destinoId === d.id ? 'primario' : 'secundario'}
-                onPress={() => { setDestinoId(d.id); limparErro('destino'); }}
-              />
-            ))}
-          </View>
+          <Pressable
+            onPress={() => setEscolhendoDestino(true)}
+            accessibilityRole="button"
+            accessibilityLabel={destinoEscolhido ? `Destino: ${rotuloDestino(destinoEscolhido)}. Trocar` : 'Escolher destino'}
+            style={({ pressed }) => [styles.campo, erros.destino && styles.campoErro, pressed && styles.campoTocado]}
+          >
+            <Text style={[styles.campoTexto, !destinoEscolhido && styles.campoVazio]} numberOfLines={1}>
+              {destinoEscolhido ? rotuloDestino(destinoEscolhido) : 'Escolher destino'}
+            </Text>
+            <Text style={styles.campoSeta}>›</Text>
+          </Pressable>
         )}
       </FormField>
+
+      {escolhendoDestino ? (
+        <PainelInferior
+          titulo="Destino"
+          onFechar={() => setEscolhendoDestino(false)}
+          rodape={<Button titulo="+ Cadastrar destino" bloco onPress={cadastrarDestino} />}
+        >
+          {destinos.map((d) => {
+            const marcado = d.id === destinoId;
+            return (
+              <Pressable
+                key={d.id}
+                onPress={() => escolherDestino(d.id)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: marcado }}
+                style={({ pressed }) => [styles.opcaoDestino, pressed && styles.opcaoTocada]}
+              >
+                <View style={styles.opcaoTextos}>
+                  <Text style={[styles.opcaoCidade, marcado && styles.opcaoMarcada]} numberOfLines={1}>
+                    {d.cidade}
+                  </Text>
+                  <Text style={styles.opcaoPais} numberOfLines={1}>{d.pais}</Text>
+                </View>
+                {marcado ? <Text style={styles.opcaoCheck}>✓</Text> : null}
+              </Pressable>
+            );
+          })}
+        </PainelInferior>
+      ) : null}
 
       <View style={styles.grid2}>
         <FormField label="Início" erro={erros.inicio} style={styles.coluna}>
@@ -226,4 +273,38 @@ const styles = StyleSheet.create({
   fixo: { fontFamily: fonts.corpoSemi, fontSize: 15, color: colors.tinta, paddingVertical: 6 },
   semDestino: { gap: 10, alignItems: 'flex-start' },
   semDestinoTexto: { fontFamily: fonts.corpo, fontSize: 14, color: colors.suave },
+  // Mesmo visual do Input, para o seletor parecer um campo do formulário
+  campo: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: colors.branco,
+    borderWidth: 1,
+    borderColor: colors.linha,
+    borderRadius: radius.md,
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+  },
+  campoErro: { borderColor: colors.acento, backgroundColor: colors.erroFundo },
+  campoTocado: { backgroundColor: colors.linhaTocada },
+  campoTexto: { flex: 1, fontFamily: fonts.corpo, fontSize: 14, color: colors.tinta },
+  campoVazio: { color: colors.suave },
+  campoSeta: { fontFamily: fonts.corpo, fontSize: 18, color: colors.suave },
+  opcaoDestino: {
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.linhaSuave,
+  },
+  opcaoTocada: { backgroundColor: colors.linhaTocada },
+  opcaoTextos: { flex: 1, gap: 2 },
+  opcaoCidade: { fontFamily: fonts.corpoSemi, fontSize: 14, color: colors.tinta },
+  opcaoMarcada: { color: colors.acento },
+  opcaoPais: { fontFamily: fonts.corpo, fontSize: 11.5, color: colors.suave },
+  opcaoCheck: { fontFamily: fonts.corpoForte, fontSize: 16, color: colors.acento },
 });
