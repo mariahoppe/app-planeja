@@ -8,6 +8,7 @@ import { DatePicker } from '../../../components/molecules/DatePicker';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
 import { FormField } from '../../../components/molecules/FormField';
 import { PainelInferior } from '../../../components/molecules/PainelInferior';
+import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts, radius } from '../../../config/theme';
 import { useToast } from '../../../contexts/ToastContext';
@@ -224,17 +225,7 @@ export function RoteiroFormScreen({ route, navigation }) {
       ) : null}
 
       <FormField label="Status">
-        <View style={styles.opcoes}>
-          {STATUS.map((s) => (
-            <Button
-              key={s.valor}
-              titulo={s.rotulo}
-              pequeno
-              variante={status === s.valor ? 'primario' : 'secundario'}
-              onPress={() => setStatus(s.valor)}
-            />
-          ))}
-        </View>
+        <SeletorSegmentado opcoes={STATUS} valor={status} onChange={setStatus} />
       </FormField>
 
       <FormField label="Observações (opcional)">
@@ -267,7 +258,6 @@ export function RoteiroFormScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   grid2: { flexDirection: 'row', gap: 10 },
   coluna: { flex: 1 },
-  opcoes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   tirarFim: { alignSelf: 'flex-end', marginTop: -4 },
   area: { minHeight: 84, textAlignVertical: 'top' },
   fixo: { fontFamily: fonts.corpoSemi, fontSize: 15, color: colors.tinta, paddingVertical: 6 },
