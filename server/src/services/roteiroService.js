@@ -2,10 +2,29 @@ const { Op } = require('sequelize');
 const { Roteiro, Destino, Atividade, Grupo } = require('../models');
 const { paginacao } = require('../utils/paginacao');
 const { AppError } = require('../utils/errorHandler');
-const { exigirAcessoAoRoteiro } = require('./permissoes');
+const { exigirAcessoAoRoteiro, roteirosDosMeusGrupos } = require('./permissoes');
+
+/**
+ * Filtro de "meus roteiros": os dos destinos do usuário e os das viagens em
+ * grupo de que ele participa (RF-19). Usa ids prontos, e não '$destino.usuario_id$',
+ * porque com paginação e o include de atividades o Sequelize monta uma subquery
+ * em que a referência ao include não existe.
+ */
+const filtroMeusRoteiros = async (userId) => {
+  const [destinos, compartilhados] = await Promise.all([
+    Destino.findAll({ where: { usuario_id: userId }, attributes: ['id'] }),
+    roteirosDosMeusGrupos(userId)
+  ]);
+  return {
+    [Op.or]: [
+      { destino_id: { [Op.in]: destinos.map((d) => d.id) } },
+      { id: { [Op.in]: compartilhados } }
+    ]
+  };
+};
 
 const listar = async (query, userId, isAdmin) => {
-  const where = {};
+  const where = isAdmin ? {} : await filtroMeusRoteiros(userId);
 
   if (query.busca) {
     where.titulo = { [Op.iLike]: `%${query.busca}%` };
@@ -23,8 +42,7 @@ const listar = async (query, userId, isAdmin) => {
   const includeDestino = {
     model: Destino,
     as: 'destino',
-    attributes: ['id', 'cidade', 'pais', 'usuario_id'],
-    ...(!isAdmin && { where: { usuario_id: userId } })
+    attributes: ['id', 'cidade', 'pais', 'usuario_id']
   };
 
   const ordenacao = query.ordenar === 'recentes' ? [['created_at', 'DESC'], ['id', 'DESC']] : [['inicio', 'ASC'], ['id', 'ASC']];

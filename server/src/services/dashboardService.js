@@ -1,5 +1,6 @@
 const { Op } = require('sequelize');
 const { Destino, Roteiro, Atividade, Dica, Grupo, GrupoMembro } = require('../models');
+const { roteirosDosMeusGrupos } = require('./permissoes');
 
 /**
  * Alimenta a tela de Início: o cartão da próxima viagem, os quatro contadores
@@ -8,11 +9,20 @@ const { Destino, Roteiro, Atividade, Dica, Grupo, GrupoMembro } = require('../mo
 const obterDashboard = async (userId, isAdmin) => {
   const whereDest = isAdmin ? {} : { usuario_id: userId };
 
-  const destinos = await Destino.findAll({ where: whereDest, attributes: ['id'] });
+  const [destinos, compartilhados] = await Promise.all([
+    Destino.findAll({ where: whereDest, attributes: ['id'] }),
+    isAdmin ? [] : roteirosDosMeusGrupos(userId)
+  ]);
   const destinoIds = destinos.map((d) => d.id);
 
+  // Os roteiros dos destinos do usuário e os das viagens em grupo de que ele participa (RF-19)
   const roteiros = await Roteiro.findAll({
-    where: { destino_id: { [Op.in]: destinoIds } },
+    where: {
+      [Op.or]: [
+        { destino_id: { [Op.in]: destinoIds } },
+        { id: { [Op.in]: compartilhados } }
+      ]
+    },
     include: [
       { model: Destino, as: 'destino', attributes: ['id', 'cidade', 'pais'] },
       { model: Atividade, as: 'atividades', attributes: ['id', 'feita', 'custo', 'dia', 'horario', 'titulo', 'local'] },
