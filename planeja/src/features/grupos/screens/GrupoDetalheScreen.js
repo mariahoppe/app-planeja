@@ -1,20 +1,26 @@
 import { useFocusEffect } from '@react-navigation/native';
+import * as Clipboard from 'expo-clipboard';
 import { useCallback, useState } from 'react';
 import { Alert, Share, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { Card } from '../../../components/atoms/Card';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
+import { PainelInferior } from '../../../components/molecules/PainelInferior';
 import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { useToast } from '../../../contexts/ToastContext';
+import * as atividadeService from '../../atividades/services/atividadeService';
 import { periodoCurto, STATUS_VIAGEM } from '../../inicio/formatos';
 import { AbaDespesas } from '../components/AbaDespesas';
 import { IntegranteItem } from '../components/IntegranteItem';
-import { nomeViagem, rotuloIntegrantes } from '../formatos';
+import { moeda, nomeViagem, rotuloIntegrantes } from '../formatos';
 import * as grupoService from '../services/grupoService';
+
+// Quantas atividades a aba Viagem mostra em "Atividades recentes", como no protótipo
+const ATIVIDADES_NA_ABA = 4;
 
 const ABAS = [
   { valor: 'viagem', rotulo: 'Viagem' },
@@ -23,11 +29,13 @@ const ABAS = [
 ];
 
 /**
- * Tela do grupo (RF-19 e RF-20), com as abas do protótipo:
- * - Viagem: a viagem vinculada (abre o roteiro, que todos do grupo podem editar) e o código de convite.
- * - Integrantes: quem está no grupo; o criador pode remover pessoas.
+ * Tela do grupo (RF-19 e RF-20), com as abas do protótipo (abre em Despesas):
+ * - Viagem: a viagem vinculada (abre o roteiro, que todos do grupo podem editar)
+ *   e as primeiras atividades dela.
+ * - Integrantes: quem está no grupo, o convite por código (RF-18); o criador
+ *   remove pessoas e exclui o grupo, os demais podem sair.
  * - Despesas: o que cada um pagou (RF-21, RF-22 e RF-25).
- * O criador renomeia ("Editar") e exclui o grupo; os demais podem sair dele.
+ * O criador também renomeia o grupo ("Editar", fora da aba Despesas).
  */
 export function GrupoDetalheScreen({ route, navigation }) {
   const { id } = route.params;
@@ -35,15 +43,22 @@ export function GrupoDetalheScreen({ route, navigation }) {
   const toast = useToast();
 
   const [grupo, setGrupo] = useState(null);
+  const [atividades, setAtividades] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
-  const [aba, setAba] = useState('viagem');
+  const [aba, setAba] = useState(route.params?.aba ?? 'despesas');
+  const [convidando, setConvidando] = useState(false);
   const [ocupado, setOcupado] = useState(null); // 'sair', 'excluir' ou o id de quem está sendo removido
 
   const carregar = useCallback(async () => {
     try {
       setErro(null);
-      setGrupo(await grupoService.buscarPorId(id));
+      const dados = await grupoService.buscarPorId(id);
+      setGrupo(dados);
+      // As atividades só enfeitam a aba Viagem: se falharem, a tela segue sem elas.
+      if (dados.roteiro) {
+        atividadeService.listar(dados.roteiro.id).then(setAtividades, () => setAtividades([]));
+      }
     } catch (e) {
       setErro(e.message);
     } finally {
@@ -81,6 +96,14 @@ export function GrupoDetalheScreen({ route, navigation }) {
       // Fechar o menu de compartilhar não é erro; nada a fazer.
     }
   }
+
+  async function copiarCodigo() {
+    await Clipboard.setStringAsync(grupo.codigo_convite);
+    setConvidando(false);
+    toast('Código copiado.');
+  }
+
+  const novaDespesa = () => navigation.navigate('DespesaForm', { grupo });
 
   function confirmar(titulo, mensagem, rotulo, acao) {
     Alert.alert(titulo, mensagem, [
@@ -144,7 +167,9 @@ export function GrupoDetalheScreen({ route, navigation }) {
       titulo={grupo.nome}
       aoVoltar={voltar}
       direita={
-        souAdmin ? (
+        aba === 'despesas' ? (
+          <Button titulo="+ Despesa" variante="primario" pequeno onPress={novaDespesa} />
+        ) : souAdmin ? (
           <Button titulo="Editar" pequeno onPress={() => navigation.navigate('GrupoForm', { grupo })} />
         ) : null
       }
@@ -168,17 +193,55 @@ export function GrupoDetalheScreen({ route, navigation }) {
             </Card>
           ) : null}
 
-          <Card>
-            <Text style={styles.rotulo}>Código de convite</Text>
-            <View style={styles.linhaCard}>
-              <Text style={styles.codigo} selectable accessibilityLabel={`Código ${grupo.codigo_convite.split('').join(' ')}`}>
-                {grupo.codigo_convite}
-              </Text>
-              <Button titulo="Compartilhar" pequeno onPress={compartilhar} />
-            </View>
-            <Text style={styles.sub}>Quem tiver o código entra pela aba Grupos e passa a ver e editar a viagem.</Text>
-          </Card>
+          <Text style={styles.nota}>
+            Todos os integrantes podem inserir e editar o roteiro, as atividades e as despesas desta viagem.
+          </Text>
 
+          {grupo.roteiro ? (
+            <View>
+              <Text style={styles.rotulo}>Atividades recentes</Text>
+              {atividades === null ? (
+                <EstadoCarga carregando />
+              ) : atividades.length === 0 ? (
+                <Text style={styles.vazio}>Nenhuma atividade no roteiro ainda.</Text>
+              ) : (
+                atividades.slice(0, ATIVIDADES_NA_ABA).map((a) => (
+                  <View key={a.id} style={styles.atividade}>
+                    <View style={styles.atividadeTextos}>
+                      <Text style={styles.atividadeTitulo} numberOfLines={1}>{a.titulo}</Text>
+                      <Text style={styles.sub}>
+                        Dia {a.dia}{a.horario ? ` · ${String(a.horario).slice(0, 5)}` : ''}
+                      </Text>
+                    </View>
+                    <Text style={styles.atividadeCusto}>{Number(a.custo) ? moeda(a.custo) : 'grátis'}</Text>
+                  </View>
+                ))
+              )}
+            </View>
+          ) : null}
+        </>
+      ) : null}
+
+      {aba === 'integrantes' ? (
+        <>
+          <View>
+            <Text style={styles.rotulo}>{rotuloIntegrantes(membros.length)}</Text>
+            {membros.map((m) => {
+              const ehCriador = m.usuario_id === grupo.criador_id;
+              return (
+                <IntegranteItem
+                  key={m.usuario_id}
+                  membro={m}
+                  ehCriador={ehCriador}
+                  ehVoce={m.usuario_id === usuario?.id}
+                  onRemover={souAdmin && !ehCriador ? () => remover(m) : undefined}
+                  removendo={ocupado === m.usuario_id}
+                />
+              );
+            })}
+          </View>
+
+          <Button titulo="Convidar integrantes" variante="primario" bloco onPress={() => setConvidando(true)} />
           {souAdmin ? (
             <Button titulo="Excluir grupo" bloco carregando={ocupado === 'excluir'} onPress={excluir} />
           ) : (
@@ -187,23 +250,28 @@ export function GrupoDetalheScreen({ route, navigation }) {
         </>
       ) : null}
 
-      {aba === 'integrantes' ? (
-        <View>
-          <Text style={styles.rotulo}>{rotuloIntegrantes(membros.length)}</Text>
-          {membros.map((m) => {
-            const ehCriador = m.usuario_id === grupo.criador_id;
-            return (
-              <IntegranteItem
-                key={m.usuario_id}
-                membro={m}
-                ehCriador={ehCriador}
-                ehVoce={m.usuario_id === usuario?.id}
-                onRemover={souAdmin && !ehCriador ? () => remover(m) : undefined}
-                removendo={ocupado === m.usuario_id}
-              />
-            );
-          })}
-        </View>
+      {convidando ? (
+        <PainelInferior
+          titulo="Código de convite"
+          onFechar={() => setConvidando(false)}
+          rodape={
+            <View style={styles.acoesConvite}>
+              <Button titulo="Copiar código" variante="primario" bloco onPress={copiarCodigo} />
+              <Button titulo="Compartilhar" bloco onPress={compartilhar} />
+            </View>
+          }
+        >
+          <Text style={styles.nota}>
+            Quem receber este código entra no grupo pela tela de Grupos e passa a ter acesso à viagem.
+          </Text>
+          <Text
+            style={styles.codigo}
+            selectable
+            accessibilityLabel={`Código ${grupo.codigo_convite.split('').join(' ')}`}
+          >
+            {grupo.codigo_convite}
+          </Text>
+        </PainelInferior>
       ) : null}
 
       {aba === 'despesas' ? (
@@ -232,5 +300,26 @@ const styles = StyleSheet.create({
     color: colors.acento,
   },
   abrir: { fontFamily: fonts.corpoSemi, fontSize: 13, color: colors.acento },
-  codigo: { fontFamily: fonts.monoForte, fontSize: 26, letterSpacing: 4, color: colors.tinta },
+  codigo: {
+    fontFamily: fonts.monoForte,
+    fontSize: 32,
+    letterSpacing: 6,
+    color: colors.tinta,
+    textAlign: 'center',
+    paddingVertical: 12,
+  },
+  nota: { fontFamily: fonts.corpo, fontSize: 12.5, lineHeight: 18, color: colors.suave },
+  vazio: { fontFamily: fonts.corpo, fontSize: 13, color: colors.suave, paddingVertical: 8 },
+  atividade: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.linhaSuave,
+  },
+  atividadeTextos: { flex: 1, gap: 2 },
+  atividadeTitulo: { fontFamily: fonts.corpoSemi, fontSize: 14, color: colors.tinta },
+  atividadeCusto: { fontFamily: fonts.mono, fontSize: 12.5, color: colors.tinta },
+  acoesConvite: { gap: 8 },
 });

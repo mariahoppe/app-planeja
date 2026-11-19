@@ -66,8 +66,8 @@ export function DespesaFormScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={`${editando ? 'Editar' : 'Nova'} · ${grupo.nome}`}
-      titulo="Despesa"
+      sobretitulo={editando ? 'Editar' : 'Nova despesa'}
+      titulo="Lançar"
       aoVoltar={() => navigation.goBack()}
     >
       <DespesaForm

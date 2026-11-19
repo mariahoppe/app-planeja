@@ -1,7 +1,8 @@
 import { get, post, put, del } from '../../../api/api';
 
-export function listar() {
-    return get('/grupos');
+// filtros (opcional): { pagina, limite } para a lista paginada (RNF-04)
+export function listar(filtros) {
+    return get('/grupos', filtros);
 }
 
 export function criar(dados) {

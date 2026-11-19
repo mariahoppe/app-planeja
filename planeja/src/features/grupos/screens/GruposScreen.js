@@ -1,44 +1,36 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { EmptyState } from '../../../components/molecules/EmptyState';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
+import { RodapeLista } from '../../../components/molecules/RodapeLista';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
 import { useToast } from '../../../contexts/ToastContext';
+import { useListaPaginada } from '../../../hooks/useListaPaginada';
 import { CartaoGrupo } from '../components/CartaoGrupo';
 import { EntrarComCodigo } from '../components/EntrarComCodigo';
 import * as grupoService from '../services/grupoService';
 
 /**
  * Meus grupos (RF-17 e RF-18): os grupos de viagem de que a pessoa participa,
- * criar um grupo novo e entrar num grupo existente pelo código de convite.
+ * em páginas (RNF-04), criar um grupo novo e entrar num grupo existente pelo
+ * código de convite.
  */
 export function GruposScreen({ navigation }) {
   const toast = useToast();
-  const [grupos, setGrupos] = useState([]);
-  const [carregando, setCarregando] = useState(true);
-  const [erro, setErro] = useState(null);
 
-  const carregar = useCallback(async () => {
-    try {
-      setErro(null);
-      const dados = await grupoService.listar();
-      setGrupos(dados || []);
-    } catch (e) {
-      setErro(e.message);
-    } finally {
-      setCarregando(false);
-    }
-  }, []);
+  const buscarPagina = useCallback((pagina, limite) => grupoService.listar({ pagina, limite }), []);
+  const { itens: grupos, erro, temMais, carregandoMais, recarregar, carregarMais } = useListaPaginada(buscarPagina);
+  const carregando = grupos === null && !erro;
 
   // Recarrega ao voltar para a aba (ex.: depois de criar um grupo).
   useFocusEffect(
     useCallback(() => {
-      carregar();
-    }, [carregar])
+      recarregar();
+    }, [recarregar])
   );
 
   const abrirNovo = () => navigation.navigate('GrupoForm');
@@ -55,9 +47,10 @@ export function GruposScreen({ navigation }) {
       sobretitulo="Viagens em grupo"
       titulo="Grupos"
       direita={<Button titulo="+ Criar" pequeno onPress={abrirNovo} />}
+      aoChegarNoFim={carregarMais}
     >
       {carregando || erro ? (
-        <EstadoCarga carregando={carregando} erro={erro} onTentarDeNovo={carregar} />
+        <EstadoCarga carregando={carregando} erro={erro} onTentarDeNovo={recarregar} />
       ) : grupos.length === 0 ? (
         <EmptyState
           titulo="Nenhum grupo ainda"
@@ -70,6 +63,7 @@ export function GruposScreen({ navigation }) {
           {grupos.map((g) => (
             <CartaoGrupo key={g.id} grupo={g} onPress={() => abrirGrupo(g)} />
           ))}
+          <RodapeLista temMais={temMais} carregando={carregandoMais} onCarregarMais={carregarMais} />
         </>
       )}
 
