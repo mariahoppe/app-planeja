@@ -101,6 +101,20 @@ const atualizar = async (id, dados, userId, isAdmin) => {
     throw new AppError('Fim antes do início', 400);
   }
 
+  // As atividades guardam o "dia N" da viagem: encurtar o período não pode
+  // deixar alguma depois do último dia.
+  if (fim) {
+    const UM_DIA = 24 * 60 * 60 * 1000;
+    const diasNoPeriodo = Math.round((new Date(fim) - new Date(inicio)) / UM_DIA) + 1;
+    const ultimoDia = await Atividade.max('dia', { where: { roteiro_id: roteiro.id } });
+    if (ultimoDia && ultimoDia > diasNoPeriodo) {
+      throw new AppError(
+        `Há atividade no dia ${ultimoDia} da viagem; o período precisa ter pelo menos ${ultimoDia} dias`,
+        400
+      );
+    }
+  }
+
   await roteiro.update(dados);
   return roteiro;
 };

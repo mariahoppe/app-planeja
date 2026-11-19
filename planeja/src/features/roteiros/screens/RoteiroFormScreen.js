@@ -130,8 +130,8 @@ export function RoteiroFormScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={editando ? 'Editar viagem' : 'Nova viagem'}
-      titulo={editando ? roteiro.titulo : 'Novo roteiro'}
+      sobretitulo={editando ? 'Editar' : 'Novo'}
+      titulo="Roteiro"
       aoVoltar={() => navigation.goBack()}
     >
       <FormField

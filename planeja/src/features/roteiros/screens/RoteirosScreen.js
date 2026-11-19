@@ -49,10 +49,11 @@ export function RoteirosScreen({ navigation, seletor }) {
     <ScreenTemplate
       sobretitulo="Planejamento"
       titulo="Roteiros"
-      direita={<Button titulo="+ Novo" pequeno onPress={novo} />}
       aoChegarNoFim={carregarMais}
     >
       {seletor}
+
+      <Button titulo="+ Novo roteiro" variante="primario" bloco onPress={novo} />
 
       <Input
         placeholder="Buscar pelo título"
@@ -71,11 +72,7 @@ export function RoteirosScreen({ navigation, seletor }) {
         filtrando ? (
           <EmptyState titulo="Nada encontrado" mensagem="Nenhuma viagem combina com a busca ou o filtro." />
         ) : (
-          <EmptyState
-            titulo="Nenhum roteiro ainda"
-            mensagem="Crie a primeira viagem: escolha o destino, as datas e depois adicione as atividades."
-            acao={<Button titulo="+ Criar roteiro" variante="primario" onPress={novo} />}
-          />
+          <EmptyState titulo="Nenhum roteiro" mensagem="Crie um roteiro a partir de um destino cadastrado." />
         )
       ) : (
         <>

@@ -19,12 +19,12 @@ export function validarRoteiro({ titulo, destinoId, inicio, fim }) {
   const e = {};
   const limpo = titulo.trim();
 
-  if (!limpo) e.titulo = 'Dê um título à viagem';
+  if (!limpo) e.titulo = 'Informe um título';
   else if (limpo.length > MAX_TITULO) e.titulo = `Use no máximo ${MAX_TITULO} caracteres`;
 
   if (!destinoId) e.destino = 'Escolha o destino';
-  if (!inicio) e.inicio = 'Escolha a data de início';
-  if (inicio && fim && fim < inicio) e.fim = 'O fim não pode ser antes do início';
+  if (!inicio) e.inicio = 'Informe a data de início';
+  if (inicio && fim && fim < inicio) e.fim = 'Fim antes do início';
 
   return e;
 }
