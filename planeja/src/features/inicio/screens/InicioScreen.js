@@ -108,19 +108,19 @@ export function InicioScreen({ navigation }) {
                   chave: 'destinos',
                   rotulo: 'Destinos',
                   valor: painel.totais.destinos,
-                  onPress: () => navigation.navigate('Destinos'),
+                  onPress: () => navigation.navigate('Roteiros', { aba: 'destinos' }),
                 },
                 {
                   chave: 'roteiros',
                   rotulo: 'Roteiros',
                   valor: painel.totais.roteiros,
-                  onPress: () => navigation.navigate('Roteiros'),
+                  onPress: () => navigation.navigate('Roteiros', { aba: 'roteiros' }),
                 },
                 {
                   chave: 'dicas',
                   rotulo: 'Dicas publicadas',
                   valor: painel.totais.dicas_publicadas,
-                  onPress: () => navigation.navigate('Dicas'),
+                  onPress: () => navigation.navigate('Dicas', { aba: 'dicas' }),
                 },
                 {
                   chave: 'grupos',

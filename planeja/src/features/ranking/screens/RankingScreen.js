@@ -28,7 +28,7 @@ const LISTAS = [
  * por cidade ou por país, sob o filtro nacional/internacional.
  * Tocar num destino abre a aba Dicas já filtrada por ele (RF-16).
  */
-export function RankingScreen({ navigation }) {
+export function RankingScreen({ navigation, seletor }) {
   const [escopo, setEscopo] = useState('internacional');
   const [lista, setLista] = useState('cidades');
   const [ranking, setRanking] = useState(null); // { escopo, paises, cidades }
@@ -59,7 +59,7 @@ export function RankingScreen({ navigation }) {
 
   const avaliar = () => navigation.navigate('AvaliacaoForm');
   const abrirDicas = (item) =>
-    navigation.navigate('Dicas', { filtro: { busca: item.nome, escopo: ranking.escopo } });
+    navigation.navigate('Dicas', { aba: 'dicas', filtro: { busca: item.nome, escopo: ranking.escopo } });
 
   // Ao trocar de filtro, mantém a lista antiga na tela até a nova chegar, só sem misturar escopos.
   const atualizado = ranking && ranking.escopo === escopo;
@@ -67,10 +67,12 @@ export function RankingScreen({ navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo="Comunidade"
+      sobretitulo="Custo-benefício"
       titulo="Ranking"
       direita={<Button titulo="+ Avaliar" pequeno onPress={avaliar} />}
     >
+      {seletor}
+
       <Text style={styles.intro}>
         Os destinos com melhor custo-benefício, pela média das notas de quem já foi.
       </Text>
