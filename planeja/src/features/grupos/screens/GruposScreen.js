@@ -44,7 +44,7 @@ export function GruposScreen({ navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo="Viagens em grupo"
+      sobretitulo="Colaborativo"
       titulo="Grupos"
       direita={<Button titulo="+ Criar" pequeno onPress={abrirNovo} />}
       aoChegarNoFim={carregarMais}
@@ -53,8 +53,8 @@ export function GruposScreen({ navigation }) {
         <EstadoCarga carregando={carregando} erro={erro} onTentarDeNovo={recarregar} />
       ) : grupos.length === 0 ? (
         <EmptyState
-          titulo="Nenhum grupo ainda"
-          mensagem="Crie um grupo para dividir uma viagem com outras pessoas, ou entre num grupo com o código de convite."
+          titulo="Nenhum grupo"
+          mensagem="Crie um grupo para dividir o planejamento e as despesas de uma viagem."
           acao={<Button titulo="+ Criar grupo" variante="primario" onPress={abrirNovo} />}
         />
       ) : (

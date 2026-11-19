@@ -34,7 +34,7 @@ export function DespesaFormScreen({ route, navigation }) {
       } else {
         await despesaService.criar(grupo.id, dados);
       }
-      toast(editando ? 'Despesa atualizada.' : 'Despesa adicionada.');
+      toast(editando ? 'Despesa atualizada. Saldos recalculados.' : 'Despesa registrada. Saldos recalculados.');
       navigation.goBack(); // a aba Despesas recarrega sozinha ao voltar
     } catch (err) {
       Alert.alert('Não foi possível salvar', err.message);
@@ -53,7 +53,7 @@ export function DespesaFormScreen({ route, navigation }) {
           try {
             setExcluindo(true);
             await despesaService.excluir(grupo.id, despesa.id);
-            toast('Despesa excluída.');
+            toast('Despesa excluída. Saldos recalculados.');
             navigation.goBack();
           } catch (err) {
             Alert.alert('Não foi possível excluir', err.message);

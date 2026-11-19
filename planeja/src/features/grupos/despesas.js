@@ -11,7 +11,7 @@ export const CATEGORIAS = [
 ];
 
 export const MODOS_DIVISAO = [
-  { valor: 'igual', rotulo: 'Dividir igual' },
+  { valor: 'igual', rotulo: 'Igual' },
   { valor: 'personalizada', rotulo: 'Personalizada' },
 ];
 

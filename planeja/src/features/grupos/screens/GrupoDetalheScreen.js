@@ -77,7 +77,7 @@ export function GrupoDetalheScreen({ route, navigation }) {
 
   if (!grupo) {
     return (
-      <ScreenTemplate sobretitulo="Viagens em grupo" titulo="Grupo" aoVoltar={voltar}>
+      <ScreenTemplate sobretitulo="Colaborativo" titulo="Grupo" aoVoltar={voltar}>
         <EstadoCarga carregando={carregando} erro={erro} onTentarDeNovo={carregar} />
       </ScreenTemplate>
     );
@@ -142,7 +142,7 @@ export function GrupoDetalheScreen({ route, navigation }) {
       'Você deixa de ver a viagem e as despesas. O que você já lançou continua valendo para o grupo.',
       'Sair',
       async () => {
-        if (await executar('sair', () => grupoService.sair(grupo.id), `Você saiu de ${grupo.nome}.`)) voltar();
+        if (await executar('sair', () => grupoService.sair(grupo.id), 'Você saiu do grupo.')) voltar();
       }
     );
 
@@ -155,7 +155,7 @@ export function GrupoDetalheScreen({ route, navigation }) {
         const ok = await executar(
           membro.usuario_id,
           () => grupoService.removerIntegrante(grupo.id, membro.usuario_id),
-          `${membro.usuario?.nome} foi removido.`
+          'Integrante removido.'
         );
         if (ok) carregar();
       }
@@ -163,7 +163,7 @@ export function GrupoDetalheScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={viagem ? `Grupo · Viagem ${viagem}` : 'Grupo'}
+      sobretitulo={grupo.roteiro?.titulo ?? (viagem ? `Viagem ${viagem}` : 'Grupo')}
       titulo={grupo.nome}
       aoVoltar={voltar}
       direita={
