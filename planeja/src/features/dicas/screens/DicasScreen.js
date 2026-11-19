@@ -26,7 +26,7 @@ const ESPERA_BUSCA_MS = 300;
  * maiúsculas, feita pela API) e filtro nacional/internacional. Sem busca, as mais recentes.
  * Vindo do Ranking (RF-16), chega com route.params.filtro = { busca, escopo } e abre já filtrada.
  */
-export function DicasScreen({ route, navigation }) {
+export function DicasScreen({ route, navigation, seletor }) {
   const filtroInicial = route.params?.filtro;
 
   const [busca, setBusca] = useState(filtroInicial?.busca ?? ''); // o que está escrito no campo
@@ -81,6 +81,8 @@ export function DicasScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate sobretitulo="Comunidade" titulo="Dicas" aoChegarNoFim={carregarMais}>
+      {seletor}
+
       <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => publicar()} />
 
       <View style={styles.buscaLinha}>

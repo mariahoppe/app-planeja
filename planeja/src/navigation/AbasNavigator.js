@@ -4,12 +4,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { IconeAba } from '../components/atoms/IconeAba';
 import { colors, fonts } from '../config/theme';
-import { DestinosScreen } from '../features/destinos/screens/DestinosScreen';
-import { DicasScreen } from '../features/dicas/screens/DicasScreen';
+import { DicasTab } from '../features/dicas/screens/DicasTab';
 import { GruposScreen } from '../features/grupos/screens/GruposScreen';
 import { InicioScreen } from '../features/inicio/screens/InicioScreen';
-import { RankingScreen } from '../features/ranking/screens/RankingScreen';
-import { RoteirosScreen } from '../features/roteiros/screens/RoteirosScreen';
+import { RoteirosTab } from '../features/roteiros/screens/RoteirosTab';
 
 const Abas = createBottomTabNavigator();
 
@@ -35,7 +33,8 @@ function opcoesDaAba(nome, title) {
 }
 
 /**
- * As 6 abas inferiores de quem está logado.
+ * As 4 abas inferiores de quem está logado, como no protótipo. Destinos e Ranking
+ * não são abas: ficam num seletor no topo de Roteiros e de Dicas (RoteirosTab, DicasTab).
  * Quando uma seção precisar de telas internas (detalhe, formulário), troque o
  * component da aba por um stack próprio daquela feature.
  */
@@ -59,10 +58,8 @@ export function AbasNavigator() {
       }}
     >
       <Abas.Screen name="Inicio" component={InicioScreen} options={opcoesDaAba('inicio', 'Início')} />
-      <Abas.Screen name="Roteiros" component={RoteirosScreen} options={opcoesDaAba('roteiros', 'Roteiros')} />
-      <Abas.Screen name="Destinos" component={DestinosScreen} options={opcoesDaAba('destinos', 'Destinos')} />
-      <Abas.Screen name="Dicas" component={DicasScreen} options={opcoesDaAba('dicas', 'Dicas')} />
-      <Abas.Screen name="Ranking" component={RankingScreen} options={opcoesDaAba('ranking', 'Ranking')} />
+      <Abas.Screen name="Roteiros" component={RoteirosTab} options={opcoesDaAba('roteiros', 'Roteiros')} />
+      <Abas.Screen name="Dicas" component={DicasTab} options={opcoesDaAba('dicas', 'Dicas')} />
       <Abas.Screen name="Grupos" component={GruposScreen} options={opcoesDaAba('grupos', 'Grupos')} />
     </Abas.Navigator>
   );

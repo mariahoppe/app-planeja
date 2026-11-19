@@ -20,7 +20,7 @@ const FILTROS = [
   { valor: 'internacional', rotulo: 'Internacional' },
 ];
 
-export function DestinosScreen({ navigation }) {
+export function DestinosScreen({ navigation, seletor }) {
   const [busca, setBusca] = useState('');
   const [buscaAplicada, setBuscaAplicada] = useState('');
   const [escopo, setEscopo] = useState('todos');
@@ -50,11 +50,13 @@ export function DestinosScreen({ navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo="Para onde vou"
+      sobretitulo="Cadastro"
       titulo="Destinos"
       direita={<Button titulo="+ Novo" pequeno onPress={abrirNovo} />}
       aoChegarNoFim={carregarMais}
     >
+      {seletor}
+
       <Input
         placeholder="Buscar cidade ou país"
         value={busca}

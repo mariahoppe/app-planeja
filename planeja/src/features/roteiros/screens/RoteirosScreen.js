@@ -20,7 +20,7 @@ const ESPERA_BUSCA_MS = 400;
  * Minhas viagens (RF-06): busca pelo título, filtro por status e a lista em
  * páginas (RNF-04), da viagem mais próxima para a mais distante.
  */
-export function RoteirosScreen({ navigation }) {
+export function RoteirosScreen({ navigation, seletor }) {
   const [busca, setBusca] = useState('');
   const [termo, setTermo] = useState('');
   const [status, setStatus] = useState('todos');
@@ -48,11 +48,13 @@ export function RoteirosScreen({ navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo="Minhas viagens"
+      sobretitulo="Planejamento"
       titulo="Roteiros"
       direita={<Button titulo="+ Novo" pequeno onPress={novo} />}
       aoChegarNoFim={carregarMais}
     >
+      {seletor}
+
       <Input
         placeholder="Buscar pelo título"
         value={busca}
