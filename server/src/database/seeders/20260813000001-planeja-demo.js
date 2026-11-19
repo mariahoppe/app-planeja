@@ -163,15 +163,25 @@ module.exports = {
       { id: 5, grupo_id: 2, pagador_id: 1, descricao: 'Aluguel de carro', valor: 900, data: '2026-09-03', categoria: 'transporte', modo_divisao: 'igual', ...ts }
     ]);
 
-    // Só a despesa 3 é personalizada; as demais são divisão igual, calculada em
-    // tempo de execução. A soma abaixo fecha com os R$ 210,00 da despesa — o
-    // constraint trigger rejeitaria o contrário.
+    // Toda despesa tem o rateio gravado, nos dois modos. A despesa 3 é
+    // personalizada; as demais são divisão igual entre quem estava no grupo. Cada
+    // soma fecha com o valor da despesa — o constraint trigger rejeitaria o contrário.
+    const rateio = (id, despesa_id, usuario_id, valor_devido) => ({ id, despesa_id, usuario_id, valor_devido, ...ts });
+
     await queryInterface.bulkInsert('despesa_rateios', [
-      { id: 1, despesa_id: 3, usuario_id: 1, valor_devido: 70, ...ts },
-      { id: 2, despesa_id: 3, usuario_id: 2, valor_devido: 70, ...ts },
-      { id: 3, despesa_id: 3, usuario_id: 3, valor_devido: 70, ...ts },
-      { id: 4, despesa_id: 3, usuario_id: 4, valor_devido: 0, ...ts },
-      { id: 5, despesa_id: 3, usuario_id: 5, valor_devido: 0, ...ts }
+      rateio(1, 3, 1, 70),
+      rateio(2, 3, 2, 70),
+      rateio(3, 3, 3, 70),
+      rateio(4, 3, 4, 0),
+      rateio(5, 3, 5, 0),
+      // Despesa 1 · R$ 2.400 entre os 5 do Grupo 1
+      ...[1, 2, 3, 4, 5].map((u, i) => rateio(6 + i, 1, u, 480)),
+      // Despesa 2 · R$ 380 entre os 5 do Grupo 1
+      ...[1, 2, 3, 4, 5].map((u, i) => rateio(11 + i, 2, u, 76)),
+      // Despesa 4 · R$ 150 entre os 5 do Grupo 1
+      ...[1, 2, 3, 4, 5].map((u, i) => rateio(16 + i, 4, u, 30)),
+      // Despesa 5 · R$ 900 entre os 3 da Família Lisboa
+      ...[1, 3, 4].map((u, i) => rateio(21 + i, 5, u, 300))
     ]);
 
     // Reposiciona as sequences para depois do maior id inserido

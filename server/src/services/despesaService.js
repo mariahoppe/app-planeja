@@ -1,21 +1,38 @@
 const { Despesa, DespesaRateio, GrupoMembro, Usuario, sequelize } = require('../models');
 const { AppError } = require('../utils/errorHandler');
 const { exigirAcessoAoGrupo } = require('./permissoes');
+const { rateioDe } = require('./rateio');
 
 const CENTAVO = 0.01;
 
 const COM_RELACOES = [
-  { model: DespesaRateio, as: 'rateios', attributes: ['id', 'usuario_id', 'valor_devido'] },
+  {
+    model: DespesaRateio,
+    as: 'rateios',
+    attributes: ['id', 'usuario_id', 'valor_devido'],
+    // O nome vem junto para o app mostrar quem já saiu do grupo mas ainda está na conta
+    include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'foto_url'] }]
+  },
   { model: Usuario, as: 'pagador', attributes: ['id', 'nome', 'foto_url'] }
 ];
 
+// Na ordem de entrada: é ela que decide quem fica com a sobra de centavos na divisão igual
 const membrosDoGrupo = async (grupoId) => {
-  const membros = await GrupoMembro.findAll({ where: { grupo_id: grupoId }, attributes: ['usuario_id'] });
+  const membros = await GrupoMembro.findAll({
+    where: { grupo_id: grupoId },
+    attributes: ['usuario_id'],
+    order: [['entrou_em', 'ASC'], ['id', 'ASC']]
+  });
   return membros.map((m) => m.usuario_id);
 };
 
-const exigirPagadorNoGrupo = (membrosIds, pagadorId) => {
-  if (!membrosIds.includes(Number(pagadorId))) {
+/**
+ * Quem pagou precisa ser do grupo. Ao editar, quem já era o pagador continua
+ * valendo mesmo que tenha saído: sair do grupo não apaga as despesas da pessoa.
+ */
+const exigirPagadorNoGrupo = (membrosIds, pagadorId, pagadorAtual) => {
+  const id = Number(pagadorId);
+  if (!membrosIds.includes(id) && id !== pagadorAtual) {
     throw new AppError('Quem pagou precisa ser integrante do grupo', 400);
   }
 };
@@ -24,8 +41,9 @@ const exigirPagadorNoGrupo = (membrosIds, pagadorId) => {
  * Na divisão personalizada a soma por pessoa tem que fechar com o total. O
  * banco também confere isso por constraint trigger; aqui a mensagem é a que o
  * app mostra ao usuário.
+ * permitidos: integrantes atuais e, ao editar, quem já estava no rateio da despesa.
  */
-const exigirRateioFechado = (rateio, valor, membrosIds) => {
+const exigirRateioFechado = (rateio, valor, permitidos) => {
   const soma = rateio.reduce((s, r) => s + Number(r.valor_devido), 0);
   if (Math.abs(soma - Number(valor)) > CENTAVO) {
     throw new AppError(
@@ -33,11 +51,22 @@ const exigirRateioFechado = (rateio, valor, membrosIds) => {
       400
     );
   }
-  const forasteiro = rateio.find((r) => !membrosIds.includes(Number(r.usuario_id)));
+  const forasteiro = rateio.find((r) => !permitidos.includes(Number(r.usuario_id)));
   if (forasteiro) {
     throw new AppError('O rateio inclui alguém que não é do grupo', 400);
   }
 };
+
+// Divisão igual entre os integrantes atuais, já no formato das linhas de despesa_rateios
+const rateioIgual = (valor, membrosIds) =>
+  Object.entries(rateioDe({ modo_divisao: 'igual', valor }, membrosIds))
+    .map(([usuarioId, valorDevido]) => ({ usuario_id: Number(usuarioId), valor_devido: valorDevido }));
+
+const gravarRateio = (despesaId, linhas, transaction) =>
+  DespesaRateio.bulkCreate(
+    linhas.map((r) => ({ despesa_id: despesaId, usuario_id: r.usuario_id, valor_devido: r.valor_devido })),
+    { transaction }
+  );
 
 const listar = async (grupoId, userId, isAdmin) => {
   await exigirAcessoAoGrupo(grupoId, userId, isAdmin);
@@ -61,18 +90,17 @@ const criar = async (grupoId, dados, userId, isAdmin) => {
   exigirPagadorNoGrupo(membrosIds, dados.pagador_id);
 
   const { rateio, ...campos } = dados;
-  if (campos.modo_divisao === 'personalizada') {
+  const modo = campos.modo_divisao || 'igual';
+  if (modo === 'personalizada') {
     exigirRateioFechado(rateio, campos.valor, membrosIds);
   }
 
+  // A divisão igual também é gravada: fica valendo a divisão entre quem estava no grupo hoje
+  const linhas = modo === 'personalizada' ? rateio : rateioIgual(campos.valor, membrosIds);
+
   const despesa = await sequelize.transaction(async (transaction) => {
     const nova = await Despesa.create({ ...campos, grupo_id: grupoId }, { transaction });
-    if (campos.modo_divisao === 'personalizada') {
-      await DespesaRateio.bulkCreate(
-        rateio.map((r) => ({ despesa_id: nova.id, usuario_id: r.usuario_id, valor_devido: r.valor_devido })),
-        { transaction }
-      );
-    }
+    await gravarRateio(nova.id, linhas, transaction);
     return nova;
   });
 
@@ -82,27 +110,33 @@ const criar = async (grupoId, dados, userId, isAdmin) => {
 const atualizar = async (id, dados, userId, isAdmin) => {
   const despesa = await buscarPorId(id, userId, isAdmin);
   const membrosIds = await membrosDoGrupo(despesa.grupo_id);
+  const jaNoRateio = despesa.rateios.map((r) => r.usuario_id);
 
-  if (dados.pagador_id) exigirPagadorNoGrupo(membrosIds, dados.pagador_id);
+  if (dados.pagador_id) exigirPagadorNoGrupo(membrosIds, dados.pagador_id, despesa.pagador_id);
 
   const { rateio, ...campos } = dados;
   const modo = campos.modo_divisao || despesa.modo_divisao;
   const valor = campos.valor !== undefined ? campos.valor : despesa.valor;
 
+  let linhas = null; // null = manter o rateio gravado
   if (modo === 'personalizada') {
     // Trocar o valor sem reenviar o rateio deixaria a soma quebrada
     if (!rateio) throw new AppError('Informe o valor de cada pessoa', 400);
-    exigirRateioFechado(rateio, valor, membrosIds);
+    exigirRateioFechado(rateio, valor, [...new Set([...membrosIds, ...jaNoRateio])]);
+    linhas = rateio;
+  } else {
+    // Na divisão igual, só redivide se o valor ou o modo mudarem. Editar descrição,
+    // data ou categoria mantém a divisão original, mesmo que alguém tenha saído.
+    const mudouValor = Math.round(Number(valor) * 100) !== Math.round(Number(despesa.valor) * 100);
+    const mudouModo = despesa.modo_divisao !== 'igual';
+    if (mudouValor || mudouModo) linhas = rateioIgual(valor, membrosIds);
   }
 
   await sequelize.transaction(async (transaction) => {
     await despesa.update(campos, { transaction });
-    await DespesaRateio.destroy({ where: { despesa_id: despesa.id }, transaction });
-    if (modo === 'personalizada') {
-      await DespesaRateio.bulkCreate(
-        rateio.map((r) => ({ despesa_id: despesa.id, usuario_id: r.usuario_id, valor_devido: r.valor_devido })),
-        { transaction }
-      );
+    if (linhas) {
+      await DespesaRateio.destroy({ where: { despesa_id: despesa.id }, transaction });
+      await gravarRateio(despesa.id, linhas, transaction);
     }
   });
 

@@ -165,7 +165,13 @@ const contas = async (id, userId, isAdmin) => {
     Despesa.findAll({
       where: { grupo_id: id },
       include: [
-        { model: DespesaRateio, as: 'rateios', attributes: ['usuario_id', 'valor_devido'] },
+        {
+          model: DespesaRateio,
+          as: 'rateios',
+          attributes: ['usuario_id', 'valor_devido'],
+          // O formulário de edição mostra pelo nome quem saiu do grupo mas está no rateio
+          include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'foto_url'] }]
+        },
         { model: Usuario, as: 'pagador', attributes: ['id', 'nome', 'foto_url'] }
       ],
       order: [['data', 'DESC'], ['id', 'DESC']]
@@ -175,7 +181,16 @@ const contas = async (id, userId, isAdmin) => {
   const membrosIds = membros.map((m) => m.usuario_id);
   const resumo = calcularContas(despesas.map((d) => d.toJSON()), membrosIds);
 
-  const nomePorId = Object.fromEntries(membros.map((m) => [m.usuario_id, m.usuario]));
+  // Quem já saiu do grupo continua nas contas das despesas de que participou
+  const exIntegrantes = resumo.saldos.filter((s) => s.saiu).map((s) => s.usuario_id);
+  const usuariosQueSairam = exIntegrantes.length
+    ? await Usuario.findAll({ where: { id: exIntegrantes }, attributes: ['id', 'nome', 'foto_url'] })
+    : [];
+
+  const nomePorId = Object.fromEntries([
+    ...membros.map((m) => [m.usuario_id, m.usuario]),
+    ...usuariosQueSairam.map((u) => [u.id, u])
+  ]);
 
   return {
     total: resumo.total,

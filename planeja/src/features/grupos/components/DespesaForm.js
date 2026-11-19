@@ -26,10 +26,26 @@ import { moeda } from '../formatos';
  * aqui o formulário só chama onSubmit com os dados prontos para enviar.
  * membros: integrantes atuais do grupo ({ usuario_id, usuario }).
  * despesa: a despesa a editar; sem ela, o formulário começa com "paguei eu, hoje".
+ *
+ * Ao editar, quem já saiu do grupo mas está no rateio (ou foi quem pagou)
+ * continua no formulário: sair do grupo não apaga as despesas da pessoa.
  */
 export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando = false, desabilitado = false }) {
   const editando = Boolean(despesa);
   const ids = membros.map((m) => m.usuario_id);
+  const rateioGravado = despesa?.rateios ?? [];
+
+  // Integrantes atuais + quem saiu mas ainda está no rateio desta despesa
+  const pessoas = [
+    ...membros,
+    ...rateioGravado
+      .filter((r) => !ids.includes(r.usuario_id))
+      .map((r) => ({ usuario_id: r.usuario_id, usuario: r.usuario, saiu: true })),
+  ];
+  const pagadorSaiu = editando && !ids.includes(despesa.pagador_id);
+  const pagadores = pagadorSaiu
+    ? [...membros, { usuario_id: despesa.pagador_id, usuario: despesa.pagador, saiu: true }]
+    : membros;
 
   const [descricao, setDescricao] = useState(despesa?.descricao ?? '');
   const [valor, setValor] = useState(editando ? textoValor(despesa.valor) : '');
@@ -39,8 +55,8 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
   const [modo, setModo] = useState(despesa?.modo_divisao ?? 'igual');
   const [valores, setValores] = useState(() => {
     const inicial = {};
-    ids.forEach((id) => {
-      const r = despesa?.rateios?.find((x) => x.usuario_id === id);
+    pessoas.forEach(({ usuario_id: id }) => {
+      const r = rateioGravado.find((x) => x.usuario_id === id);
       inicial[id] = r ? textoValor(r.valor_devido) : '';
     });
     return inicial;
@@ -48,7 +64,21 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
   const [erros, setErros] = useState({});
 
   const total = lerValor(valor);
-  const porPessoa = dividirIgual(total, ids);
+
+  // Na divisão igual, a API só redivide se o valor ou o modo mudarem; senão a divisão
+  // gravada continua valendo, e é ela que o formulário mostra.
+  const mantemDivisao =
+    editando &&
+    despesa.modo_divisao === 'igual' &&
+    modo === 'igual' &&
+    Math.round(total * 100) === Math.round(Number(despesa.valor) * 100);
+  const porPessoa = mantemDivisao
+    ? Object.fromEntries(rateioGravado.map((r) => [r.usuario_id, Number(r.valor_devido)]))
+    : dividirIgual(total, ids);
+  const naDivisaoIgual = mantemDivisao ? pessoas.filter((p) => p.usuario_id in porPessoa) : membros;
+  const naLista = modo === 'igual' ? naDivisaoIgual : pessoas;
+
+  const nomeDe = (p) => (p.usuario_id === usuarioId ? 'Você' : `${p.usuario?.nome ?? 'Integrante'}${p.saiu ? ' (saiu)' : ''}`);
 
   function limparErro(campo) {
     if (erros[campo]) setErros((atual) => ({ ...atual, [campo]: undefined }));
@@ -61,7 +91,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
     const vazio = Object.values(valores).every((t) => !String(t).trim());
     if (novo === 'personalizada' && vazio && !Number.isNaN(total)) {
       const preenchido = {};
-      ids.forEach((id) => { preenchido[id] = textoValor(porPessoa[id] ?? 0); });
+      pessoas.forEach(({ usuario_id: id }) => { preenchido[id] = textoValor(porPessoa[id] ?? 0); });
       setValores(preenchido);
     }
   }
@@ -80,7 +110,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
       modo_divisao: modo,
     };
     if (modo === 'personalizada') {
-      dados.rateio = ids.map((id) => {
+      dados.rateio = pessoas.map(({ usuario_id: id }) => {
         const v = lerValor(valores[id]);
         return { usuario_id: id, valor_devido: Number.isNaN(v) ? 0 : v };
       });
@@ -118,10 +148,10 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
 
       <FormField label="Quem pagou" erro={erros.pagador}>
         <View style={styles.opcoes}>
-          {membros.map((m) => (
+          {pagadores.map((m) => (
             <Button
               key={m.usuario_id}
-              titulo={m.usuario_id === usuarioId ? 'Eu' : m.usuario?.nome ?? 'Integrante'}
+              titulo={m.usuario_id === usuarioId ? 'Eu' : nomeDe(m)}
               pequeno
               variante={pagadorId === m.usuario_id ? 'primario' : 'secundario'}
               onPress={() => { setPagadorId(m.usuario_id); limparErro('pagador'); }}
@@ -149,7 +179,9 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
         erro={erros.rateio}
         dica={
           modo === 'igual'
-            ? `Entre os ${ids.length} integrantes do grupo`
+            ? mantemDivisao
+              ? 'Mantém a divisão de quando a despesa foi lançada; mude o valor para redividir'
+              : `Entre os ${ids.length} integrantes do grupo`
             : 'Informe quanto cada pessoa deve; a soma precisa fechar com o valor'
         }
       >
@@ -157,11 +189,11 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
       </FormField>
 
       <View style={styles.rateio}>
-        {membros.map((m) => (
+        {naLista.map((m) => (
           <View key={m.usuario_id} style={styles.pessoa}>
             <Avatar nome={m.usuario?.nome} fotoUri={m.usuario?.foto_url} tamanho={32} />
             <Text style={styles.nome} numberOfLines={1}>
-              {m.usuario_id === usuarioId ? 'Você' : m.usuario?.nome}
+              {nomeDe(m)}
             </Text>
             {modo === 'igual' ? (
               <Text style={styles.parte}>{Number.isNaN(total) ? '—' : moeda(porPessoa[m.usuario_id])}</Text>
