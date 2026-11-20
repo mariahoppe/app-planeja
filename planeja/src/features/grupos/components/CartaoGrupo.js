@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Card } from '../../../components/atoms/Card';
+import { Etiqueta } from '../../../components/atoms/Etiqueta';
 import { colors, fonts } from '../../../config/theme';
 import { moeda, nomeViagem, rotuloIntegrantes } from '../formatos';
 
@@ -28,9 +29,7 @@ export function CartaoGrupo({ grupo, onPress }) {
           {grupo.nome}
           {viagem ? <Text style={styles.viagem}>{` · ${viagem}`}</Text> : null}
         </Text>
-        <Text style={[styles.selo, grupo.sou_admin && styles.seloAdmin]}>
-          {grupo.sou_admin ? 'admin' : 'integrante'}
-        </Text>
+        <Etiqueta tipo={grupo.sou_admin ? 'acento' : 'neutro'}>{grupo.sou_admin ? 'admin' : 'integrante'}</Etiqueta>
       </View>
 
       <Text style={styles.meta}>
@@ -61,21 +60,6 @@ const styles = StyleSheet.create({
   linha: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
   nome: { flex: 1, fontFamily: fonts.titulo, fontSize: 17, color: colors.tinta },
   viagem: { color: colors.suave },
-  // A etiqueta .tag do protótipo: neutra para integrante, em acento para admin
-  selo: {
-    fontFamily: fonts.corpoForte,
-    fontSize: 9,
-    letterSpacing: 0.9,
-    textTransform: 'uppercase',
-    color: colors.suave,
-    backgroundColor: colors.fundoSeletor,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-    overflow: 'hidden',
-    marginTop: 2,
-  },
-  seloAdmin: { color: colors.acento, backgroundColor: colors.acentoSuave },
   meta: {
     fontFamily: fonts.corpoSemi,
     fontSize: 11,

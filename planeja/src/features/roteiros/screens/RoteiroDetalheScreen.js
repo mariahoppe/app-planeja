@@ -4,6 +4,7 @@ import { Alert, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { Card } from '../../../components/atoms/Card';
+import { Etiqueta } from '../../../components/atoms/Etiqueta';
 import { CaixaResumo } from '../../../components/molecules/CaixaResumo';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
@@ -99,7 +100,7 @@ export function RoteiroDetalheScreen({ route, navigation }) {
         <Card onPress={() => navigation.navigate('GrupoDetalhe', { id: roteiro.grupo.id, aba: 'despesas' })}>
           <View style={styles.linhaGrupo}>
             <Text style={styles.grupoNome}>{roteiro.grupo.nome}</Text>
-            <Text style={styles.etiqueta}>em grupo</Text>
+            <Etiqueta tipo="ok">em grupo</Etiqueta>
           </View>
           <View style={styles.linhaGrupo}>
             <Text style={styles.compartilhada}>Viagem compartilhada</Text>
@@ -155,19 +156,6 @@ const styles = StyleSheet.create({
   grupoNome: { flex: 1, fontFamily: fonts.titulo, fontSize: 17, color: colors.tinta },
   abrir: { fontFamily: fonts.corpoSemi, fontSize: 13, color: colors.acento },
   compartilhada: { fontFamily: fonts.corpo, fontSize: 12.5, color: colors.suave },
-  // A etiqueta .tag.ok do protótipo
-  etiqueta: {
-    fontFamily: fonts.corpoForte,
-    fontSize: 9,
-    letterSpacing: 0.9,
-    textTransform: 'uppercase',
-    color: colors.ok,
-    backgroundColor: colors.okSuave,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
   obs: { fontFamily: fonts.corpo, fontSize: 14, lineHeight: 20, color: colors.tintaSuave },
   secao: {
     flexDirection: 'row',
