@@ -2,6 +2,7 @@ const { Op, fn, col, where: sqlWhere } = require('sequelize');
 const { Dica, DicaFoto, Usuario, sequelize } = require('../models');
 const { paginacao } = require('../utils/paginacao');
 const { AppError } = require('../utils/errorHandler');
+const { apagarFotos } = require('./storageService');
 
 const MAX_FOTOS_POR_BLOCO = 4;
 
@@ -76,7 +77,10 @@ const atualizar = async (id, dados, userId, isAdmin) => {
 
 const excluir = async (id, userId, isAdmin) => {
   const dica = await exigirAutoria(id, userId, isAdmin);
+  // As linhas das fotos saem junto (cascata); os arquivos, só depois que o banco confirmar
+  const fotos = await DicaFoto.findAll({ where: { dica_id: dica.id }, attributes: ['url'] });
   await dica.destroy();
+  await apagarFotos(fotos.map((f) => f.url));
 };
 
 /**
@@ -110,6 +114,7 @@ const removerFoto = async (id, fotoId, userId, isAdmin) => {
   const foto = await DicaFoto.findOne({ where: { id: fotoId, dica_id: id } });
   if (!foto) throw new AppError('Foto não encontrada', 404);
   await foto.destroy();
+  await apagarFotos([foto.url]);
 };
 
 module.exports = {
