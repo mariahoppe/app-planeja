@@ -6,6 +6,8 @@
 
 > Fluxo de sempre: uma branch por item (`feat/...` ou `fix/...`), PR para a `main` e revisão de outra pessoa antes do merge.
 
+> **Status em 19/11:** as seções 1, 2 e 3 foram feitas pela Maria na branch `feat/mario-ranking` (Ranking com países e cidades juntos, "poucas avaliações" no 1º lugar, cidades por país + cidade, escopo pelo país, telas de Ranking e Destinos do protótipo, `GET /usuarios/:id` restrito). Fica de propósito sem mudança o middleware `validate` (ver o comentário nele: aplicar o valor do Joi mudaria o dia das datas). **O que sobra para você é a seção 4 (entrega).**
+
 ---
 
 ## ⚠️ Antes de começar: mudança na navegação
@@ -97,10 +99,21 @@ A Maria vai fazer essa mudança na branch `feat/abas-prototipo`. No mesmo PR ela
 
 ## 4. Entrega: infra e build (começar já, sem depender de ninguém)
 
-- [ ] **Publicar a API no Render** com o `render.yaml`. Preencher `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN` e as variáveis SMTP no painel. Testar `GET /health`.
-- [ ] Rodar as migrations no banco de produção. Ficam incluídas as novas da Maria (rateio) e a sua (escopo).
-- [ ] **Criar `planeja/eas.json`** (ainda não existe), com um perfil `preview` em `"android": { "buildType": "apk" }` e `EXPO_PUBLIC_API_URL` apontando para a URL do Render.
-- [ ] Gerar um APK de teste com `eas build -p android --profile preview` e instalar num Android físico (RNF-01).
+- [ ] **Publicar a API no Render** com o `render.yaml`. Preencher no painel:
+  - `DATABASE_URL`, `JWT_SECRET`, `CORS_ORIGIN` e as variáveis SMTP;
+  - `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` (secreta), para a API apagar as fotos excluídas do Storage.
+  - Testar `GET /health`.
+- [ ] Rodar as migrations no banco: `cd server && npm run db:migrate`. A do rateio (`20261119000001`) já foi aplicada em 19/11; falta a do escopo (`20261119000002`), que não altera nenhum dado de hoje.
+- [x] ~~Criar `planeja/eas.json`~~ feito: perfis `preview` e `production` geram APK; `android.package` = `app.planeja.mobile` no `app.json`.
+- [ ] **Gerar o APK de teste** (RNF-01), na pasta `planeja/`:
+  1. `npm i -g eas-cli` e `eas login` (conta Expo do time);
+  2. `eas init` (grava o `projectId` no `app.json`; commitar);
+  3. criar as variáveis do perfil `preview` (não ficam no Git):
+     - `eas env:create --environment preview --name EXPO_PUBLIC_API_URL --value https://<api-no-render>.onrender.com --visibility plaintext`
+     - `eas env:create --environment preview --name EXPO_PUBLIC_SUPABASE_URL --value https://<projeto>.supabase.co --visibility plaintext`
+     - `eas env:create --environment preview --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value <anon-key> --visibility plaintext`
+  4. `eas build -p android --profile preview` e instalar o APK num Android físico.
+- [ ] Configurar no painel do Supabase o **limite de tamanho** do bucket `dicas` (ex.: 1 MB, igual à compressão do app, RNF-09).
 - [ ] Gerar o **APK final** depois do congelamento (03/12), com tudo mergeado.
 - [ ] Branches `origin/feat/destinos` e `origin/fix/db-ssl-opcional`: são as únicas fora da `main`.
   - Se `feat/destinos` foi substituída pela `feat/destinos-crud`, apagar.

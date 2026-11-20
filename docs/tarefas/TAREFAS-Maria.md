@@ -6,6 +6,8 @@
 
 > Fluxo de sempre: uma branch por item (`feat/...` ou `fix/...`), PR para a `main` e revisão de outra pessoa antes do merge.
 
+> **Status em 19/11:** lista completa. PRs #32–#36 na `main`; a aba Despesas (ordem, paginação, textos) está em `feat/despesas-prototipo`. Fora da lista e não feito (baixo): rostos dos integrantes no card do grupo dentro do detalhe do roteiro.
+
 ---
 
 ## 0. PRIMEIRO, porque destrava o time: 4 abas iguais ao protótipo

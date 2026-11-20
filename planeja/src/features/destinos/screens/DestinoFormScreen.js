@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet } from 'react-native';
 
 import { Button } from '../../../components/atoms/Button';
 import { Input } from '../../../components/atoms/Input';
 import { FormField } from '../../../components/molecules/FormField';
+import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
+import { useToast } from '../../../contexts/ToastContext';
 import * as destinoService from '../services/destinoService';
 import { ESCOPOS, validarDestino } from '../validacao';
 
@@ -12,6 +14,7 @@ import { ESCOPOS, validarDestino } from '../validacao';
 export function DestinoFormScreen({ route, navigation }) {
   const destino = route.params?.destino;
   const editando = Boolean(destino);
+  const toast = useToast();
 
   const [cidade, setCidade] = useState(destino?.cidade ?? '');
   const [pais, setPais] = useState(destino?.pais ?? '');
@@ -40,6 +43,7 @@ export function DestinoFormScreen({ route, navigation }) {
       setSalvando(true);
       if (editando) await destinoService.atualizar(destino.id, dados);
       else await destinoService.criar(dados);
+      toast(editando ? 'Destino atualizado.' : 'Destino cadastrado.');
       navigation.goBack(); // a lista recarrega sozinha ao voltar
     } catch (err) {
       Alert.alert('Não foi possível salvar', err.message);
@@ -63,6 +67,7 @@ export function DestinoFormScreen({ route, navigation }) {
     try {
       setExcluindo(true);
       await destinoService.excluir(destino.id);
+      toast('Destino excluído.');
       navigation.goBack();
     } catch (err) {
       Alert.alert('Não foi possível excluir', err.message);
@@ -72,8 +77,8 @@ export function DestinoFormScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={editando ? 'Editar destino' : 'Novo destino'}
-      titulo={editando ? destino.cidade : 'Para onde?'}
+      sobretitulo={editando ? 'Editar' : 'Novo'}
+      titulo="Destino"
       aoVoltar={() => navigation.goBack()}
     >
       <FormField
@@ -95,23 +100,13 @@ export function DestinoFormScreen({ route, navigation }) {
       />
 
       <FormField label="Escopo" dica="Nacional = dentro do Brasil">
-        <View style={styles.opcoes}>
-          {ESCOPOS.map((e) => (
-            <Button
-              key={e.valor}
-              titulo={e.rotulo}
-              pequeno
-              variante={escopo === e.valor ? 'primario' : 'secundario'}
-              onPress={() => setEscopo(e.valor)}
-            />
-          ))}
-        </View>
+        <SeletorSegmentado opcoes={ESCOPOS} valor={escopo} onChange={setEscopo} />
       </FormField>
 
       <FormField
-        label="Período (opcional)"
-        placeholder="Abril 2027"
-        dica='Texto livre, ex.: "Férias de julho" ou "A definir"'
+        label="Período pretendido"
+        placeholder="Abril 2026"
+        dica="Mês e ano, ou 'a definir'"
         value={periodo}
         onChangeText={setPeriodo}
         maxLength={40}
@@ -120,7 +115,7 @@ export function DestinoFormScreen({ route, navigation }) {
 
       <FormField label="Observações (opcional)">
         <Input
-          placeholder="O que não pode faltar nessa viagem"
+          placeholder="O que você quer priorizar nesse destino"
           value={obs}
           onChangeText={setObs}
           multiline
@@ -130,7 +125,7 @@ export function DestinoFormScreen({ route, navigation }) {
       </FormField>
 
       <Button
-        titulo={editando ? 'Salvar alterações' : 'Salvar destino'}
+        titulo={editando ? 'Salvar alterações' : 'Cadastrar destino'}
         variante="primario"
         bloco
         carregando={salvando}
@@ -152,6 +147,5 @@ export function DestinoFormScreen({ route, navigation }) {
 }
 
 const styles = StyleSheet.create({
-  opcoes: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   obs: { minHeight: 88, textAlignVertical: 'top' },
 });

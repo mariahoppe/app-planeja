@@ -30,8 +30,7 @@ module.exports = (sequelize) => {
       allowNull: false,
       defaultValue: 'internacional'
     },
-    // Custo-benefício de 0 a 10 com uma casa. As estrelas da tela de Dica
-    // gravam estrela * 2 (5 estrelas = 10.0).
+    // Custo-benefício de 0 a 10 com uma casa (slider 0–10 no Ranking e na Dica).
     nota: {
       type: DataTypes.DECIMAL(3, 1),
       allowNull: false,
