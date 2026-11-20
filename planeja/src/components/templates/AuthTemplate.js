@@ -9,15 +9,18 @@ import { colors } from '../../config/theme';
  * topo e o formulário centralizado na vertical, rolável quando o teclado abre.
  * sub: subtítulo da marca (ex.: "Criar conta").
  * Precisa de um SafeAreaProvider na raiz do app (App.js).
+ * Teclado: padding nos dois sistemas — no Android, que desenha de ponta a ponta,
+ * a janela não encolhe sozinha (guia de teclado do Expo, SDK 58).
  */
 export function AuthTemplate({ sub, children }) {
   const margens = useSafeAreaInsets();
 
   return (
-    <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView style={styles.tela} behavior="padding">
       <ScrollView
         contentContainerStyle={[styles.corpo, { paddingTop: margens.top + 70, paddingBottom: margens.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       >
         <Marca sub={sub} />
         {children}
