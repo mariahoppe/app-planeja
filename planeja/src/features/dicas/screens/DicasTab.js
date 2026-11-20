@@ -19,9 +19,13 @@ export function DicasTab({ navigation, route }) {
   const [aba, setAba] = useState(route.params?.aba ?? 'dicas');
 
   // O useState só lê o valor inicial uma vez; se a aba já estiver aberta, o pedido chega por aqui.
+  // Depois de aplicado, o pedido é apagado: senão voltaria a valer ao tocar de novo na aba.
   useEffect(() => {
-    if (route.params?.aba) setAba(route.params.aba);
-  }, [route.params]);
+    if (route.params?.aba) {
+      setAba(route.params.aba);
+      navigation.setParams({ aba: undefined });
+    }
+  }, [route.params, navigation]);
 
   const seletor = <SeletorSegmentado opcoes={OPCOES} valor={aba} onChange={setAba} />;
 

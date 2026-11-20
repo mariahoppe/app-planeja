@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Button } from '../../../components/atoms/Button';
 import { ErrorMessage } from '../../../components/molecules/ErrorMessage';
+import { espacoParaBarraAbas } from '../../../components/organisms/BarraAbas';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { CartaoViagem } from '../components/CartaoViagem';
@@ -64,7 +65,7 @@ export function InicioScreen({ navigation }) {
       <ScrollView
         contentContainerStyle={[
           styles.corpo,
-          { paddingTop: margens.top + 14, paddingBottom: margens.bottom + 28 },
+          { paddingTop: margens.top + 14, paddingBottom: espacoParaBarraAbas(margens) },
         ]}
         refreshControl={
           <RefreshControl

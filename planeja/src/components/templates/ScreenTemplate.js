@@ -1,7 +1,9 @@
+import { useNavigation } from '@react-navigation/native';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fonts } from '../../config/theme';
+import { espacoParaBarraAbas } from '../organisms/BarraAbas';
 
 // Quantos pontos antes do fim a próxima página já começa a carregar.
 const DISTANCIA_DO_FIM = 300;
@@ -17,6 +19,9 @@ const DISTANCIA_DO_FIM = 300;
  */
 export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChegarNoFim, children }) {
   const margens = useSafeAreaInsets();
+  // Nas telas das abas, a barra flutua por cima: o fim do conteúdo precisa ficar acima dela.
+  const naAba = useNavigation().getState()?.type === 'tab';
+  const espacoEmbaixo = naAba ? espacoParaBarraAbas(margens) : margens.bottom + 24;
 
   function aoRolar({ nativeEvent }) {
     const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
@@ -25,7 +30,7 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
 
   return (
     <View style={styles.tela}>
-      <View style={[styles.cabecalho, { paddingTop: margens.top + 12 }]}>
+      <View style={[styles.cabecalho, { paddingTop: margens.top + 2 }]}>
         {aoVoltar ? (
           <Pressable onPress={aoVoltar} hitSlop={12} accessibilityRole="button" accessibilityLabel="Voltar" style={styles.voltar}>
             <Text style={styles.voltarTexto}>‹ Voltar</Text>
@@ -43,7 +48,7 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
       </View>
 
       <ScrollView
-        contentContainerStyle={[styles.corpo, { paddingBottom: margens.bottom + 24 }]}
+        contentContainerStyle={[styles.corpo, { paddingBottom: espacoEmbaixo }]}
         keyboardShouldPersistTaps="handled"
         onScroll={aoChegarNoFim ? aoRolar : undefined}
         scrollEventThrottle={aoChegarNoFim ? 200 : undefined}
@@ -95,7 +100,7 @@ const styles = StyleSheet.create({
   titulo: {
     fontFamily: fonts.tituloMedio,
     fontSize: 27,
-    lineHeight: 31,
+    lineHeight: 30, // line-height 1.1 do protótipo
     letterSpacing: -0.27,
     color: colors.tinta,
   },

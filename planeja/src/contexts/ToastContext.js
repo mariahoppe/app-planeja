@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { StyleSheet, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Subir } from '../components/atoms/Subir';
+import { espacoParaBarraAbas } from '../components/organisms/BarraAbas';
 import { colors, fonts } from '../config/theme';
 
 /**
@@ -15,6 +17,9 @@ const ToastContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [mensagem, setMensagem] = useState(null);
+  // Logo acima de onde a barra de abas flutua, como o bottom:104 do protótipo
+  const margens = useSafeAreaInsets();
+  const bottom = espacoParaBarraAbas(margens) - 12;
 
   useEffect(() => {
     if (!mensagem) return undefined;
@@ -26,7 +31,7 @@ export function ToastProvider({ children }) {
     <ToastContext.Provider value={setMensagem}>
       {children}
       {mensagem ? (
-        <Subir key={mensagem} style={styles.toast} pointerEvents="none">
+        <Subir key={mensagem} style={[styles.toast, { bottom }]} pointerEvents="none">
           <Text style={styles.texto} accessibilityLiveRegion="polite">
             {mensagem}
           </Text>
@@ -45,7 +50,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    bottom: 104,
     paddingVertical: 11,
     paddingHorizontal: 14,
     borderRadius: 11,
