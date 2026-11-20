@@ -1,6 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fonts } from '../../config/theme';
@@ -18,6 +18,12 @@ const DISTANCIA_DO_FIM = 300;
  * aoChegarNoFim: chamada quando a rolagem chega perto do fim (listas paginadas, RNF-04).
  * aoAtualizar: quando informada, liga o "puxar para atualizar"; pode devolver uma promessa.
  * Precisa de um SafeAreaProvider na raiz do app (App.js).
+ *
+ * Teclado (guia do Expo, SDK 58): o teclado não empurra a tela sozinho em
+ * nenhum dos sistemas. No iOS, a rolagem abre espaço para o teclado e rola até
+ * o campo em foco (automaticallyAdjustKeyboardInsets). No Android, que desenha
+ * de ponta a ponta e não encolhe a janela, o KeyboardAvoidingView com padding
+ * encolhe a área da rolagem, que mantém o campo em foco à vista.
  */
 export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChegarNoFim, aoAtualizar, children }) {
   const margens = useSafeAreaInsets();
@@ -41,7 +47,7 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
   }
 
   return (
-    <View style={styles.tela}>
+    <KeyboardAvoidingView style={styles.tela} behavior={Platform.OS === 'android' ? 'padding' : undefined}>
       <View style={[styles.cabecalho, { paddingTop: margens.top + 2 }]}>
         {aoVoltar ? (
           <Pressable onPress={aoVoltar} hitSlop={12} accessibilityRole="button" accessibilityLabel="Voltar" style={styles.voltar}>
@@ -62,6 +68,8 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
       <ScrollView
         contentContainerStyle={[styles.corpo, { paddingBottom: espacoEmbaixo }]}
         keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         onScroll={aoChegarNoFim ? aoRolar : undefined}
         scrollEventThrottle={aoChegarNoFim ? 200 : undefined}
         refreshControl={
@@ -77,7 +85,7 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
       >
         {children}
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
