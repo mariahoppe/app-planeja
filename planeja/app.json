@@ -17,6 +17,8 @@
       }
     },
     "android": {
+      "package": "app.planeja.mobile",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#FAF8F3",
         "foregroundImage": "./assets/android-icon-foreground.png",

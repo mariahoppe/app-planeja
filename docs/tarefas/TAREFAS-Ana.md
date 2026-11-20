@@ -6,6 +6,8 @@
 
 > Fluxo de sempre: uma branch por item (`feat/...` ou `fix/...`), PR para a `main` e revisão de outra pessoa antes do merge.
 
+> **Status em 19/11:** as seções 1, 2 e 3 foram feitas pela Maria nas branches `feat/barra-abas-prototipo` → `feat/ana-secao2` → `feat/ana-secao3`. Pendências de configuração: `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` no servidor (limpeza das fotos) e o limite de tamanho do bucket no painel do Supabase. **O que sobra para você é a seção 4 (ClickUp, vídeo e slides).**
+
 ---
 
 ## ⚠️ Antes de começar: mudança na navegação
