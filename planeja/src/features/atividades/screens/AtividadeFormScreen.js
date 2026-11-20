@@ -30,16 +30,26 @@ export function AtividadeFormScreen({ route, navigation }) {
     }
   }
 
-  async function excluir() {
-    try {
-      setExcluindo(true);
-      await atividadeService.excluir(atividade.id);
-      toast('Atividade excluída.');
-      navigation.goBack();
-    } catch (err) {
-      Alert.alert('Não foi possível excluir', err.message);
-      setExcluindo(false);
-    }
+  // Pede confirmação, como Destino e Roteiro: excluir não dá para desfazer.
+  function excluir() {
+    Alert.alert('Excluir atividade?', `"${atividade.titulo}" sai do roteiro. Não dá para desfazer.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setExcluindo(true);
+            await atividadeService.excluir(atividade.id);
+            toast('Atividade excluída.');
+            navigation.goBack();
+          } catch (err) {
+            Alert.alert('Não foi possível excluir', err.message);
+            setExcluindo(false);
+          }
+        },
+      },
+    ]);
   }
 
   return (
