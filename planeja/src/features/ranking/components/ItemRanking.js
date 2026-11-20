@@ -9,10 +9,15 @@ const BRANCO_TENUE = 'rgba(255,255,255,0.22)';
 
 const textoQtd = (qtd) => (qtd === 1 ? '1 avaliação' : `${qtd} avaliações`);
 
+// "01", "02"... como as posições do protótipo
+const posicaoDoisDigitos = (posicao) => String(posicao).padStart(2, '0');
+
 /**
  * Uma posição do ranking. O 1º lugar vira um cartão de destaque na cor de acento;
  * os demais são linhas com a barra da média se enchendo.
  * mostrarPais: nas cidades, o país aparece embaixo do nome.
+ * Com poucas avaliações, "poucas avaliações" substitui a contagem e a barra fica
+ * atenuada — também no 1º lugar, para uma nota isolada não parecer confiável.
  */
 export function ItemRanking({ item, mostrarPais, atraso = 0, onPress }) {
   const barra = useRef(new Animated.Value(0)).current;
@@ -29,8 +34,10 @@ export function ItemRanking({ item, mostrarPais, atraso = 0, onPress }) {
 
   const largura = barra.interpolate({ inputRange: [0, 1], outputRange: ['0%', '100%'] });
   const lider = item.posicao === 1;
-  const detalhe = [mostrarPais ? item.pais : null, textoQtd(item.qtd)].filter(Boolean).join(' · ');
-  const rotuloAcessivel = `${item.posicao}º lugar, ${item.nome}, média ${formatarNota(item.media)}, ${textoQtd(item.qtd)}. Ver dicas`;
+  const poucas = item.poucas_avaliacoes;
+  const contagem = poucas ? 'poucas avaliações' : textoQtd(item.qtd);
+  const detalhe = [mostrarPais ? item.pais : null, contagem].filter(Boolean).join(' · ');
+  const rotuloAcessivel = `${item.posicao}º lugar, ${item.nome}, média ${formatarNota(item.media)}, ${textoQtd(item.qtd)}${poucas ? ', poucas avaliações' : ''}. Ver dicas`;
 
   if (lider) {
     return (
@@ -41,7 +48,7 @@ export function ItemRanking({ item, mostrarPais, atraso = 0, onPress }) {
         style={({ pressed }) => [styles.lider, pressed && styles.pressionado]}
       >
         <View style={styles.circulo} />
-        <Text style={styles.liderRotulo}>1º · Melhor custo-benefício</Text>
+        <Text style={styles.liderRotulo}>01 · Melhor custo-benefício</Text>
         <View style={styles.liderLinha}>
           <View style={styles.liderNomes}>
             <Text style={styles.liderNome} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
@@ -55,7 +62,7 @@ export function ItemRanking({ item, mostrarPais, atraso = 0, onPress }) {
           </View>
         </View>
         <View style={styles.liderTrilho}>
-          <Animated.View style={[styles.liderBarra, { width: largura }]} />
+          <Animated.View style={[styles.liderBarra, { width: largura }, poucas && styles.barraFraca]} />
         </View>
         <Text style={styles.liderDica}>Toque para ver as dicas da comunidade ›</Text>
       </Pressable>
@@ -71,22 +78,22 @@ export function ItemRanking({ item, mostrarPais, atraso = 0, onPress }) {
       accessibilityLabel={rotuloAcessivel}
       style={({ pressed }) => [styles.linha, pressed && styles.pressionado]}
     >
-      <Text style={[styles.posicao, podio && styles.posicaoPodio]}>{item.posicao}º</Text>
+      <Text style={[styles.posicao, podio && styles.posicaoPodio]}>{posicaoDoisDigitos(item.posicao)}</Text>
 
       <View style={styles.meio}>
         <Text style={styles.nome} numberOfLines={1}>
           {item.nome}
         </Text>
-        <Text style={styles.detalhe}>
-          {detalhe}
-          {item.poucas_avaliacoes ? <Text style={styles.poucas}> · poucas avaliações</Text> : null}
-        </Text>
+        <Text style={[styles.detalhe, poucas && styles.poucas]}>{detalhe}</Text>
         <View style={styles.trilho}>
-          <Animated.View style={[styles.barra, { width: largura }, item.poucas_avaliacoes && styles.barraFraca]} />
+          <Animated.View style={[styles.barra, { width: largura }, poucas && styles.barraFraca]} />
         </View>
       </View>
 
-      <Text style={styles.media}>{formatarNota(item.media)}</Text>
+      <View style={styles.nota}>
+        <Text style={styles.media}>{formatarNota(item.media)}</Text>
+        <Text style={styles.mediaRotulo}>média</Text>
+      </View>
     </Pressable>
   );
 }
@@ -150,9 +157,11 @@ const styles = StyleSheet.create({
   meio: { flex: 1, gap: 3 },
   nome: { fontFamily: fonts.titulo, fontSize: 17, color: colors.tinta },
   detalhe: { fontFamily: fonts.corpo, fontSize: 12.5, color: colors.suave },
-  poucas: { fontFamily: fonts.corpo, color: colors.tenue },
+  poucas: { color: colors.aviso },
   trilho: { height: 4, borderRadius: 2, backgroundColor: colors.linhaSuave, overflow: 'hidden', marginTop: 4 },
   barra: { height: 4, borderRadius: 2, backgroundColor: colors.acento },
   barraFraca: { opacity: 0.45 },
+  nota: { alignItems: 'flex-end' },
   media: { fontFamily: fonts.monoForte, fontSize: 19, color: colors.tinta },
+  mediaRotulo: { fontFamily: fonts.corpo, fontSize: 10.5, color: colors.tenue },
 });

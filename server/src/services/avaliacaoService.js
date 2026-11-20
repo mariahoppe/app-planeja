@@ -6,6 +6,18 @@ const { AppError } = require('../utils/errorHandler');
 // distorcer o ranking com uma nota isolada
 const MIN_AVALIACOES = 2;
 
+// Nomes do Brasil já normalizados (sem acento, minúsculos), como o public.norm do banco
+const BRASIL = ['brasil', 'brazil'];
+
+const norm = (texto) => String(texto || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+
+/**
+ * "Cidades herdam o país para o filtro nacional/internacional" (escopo): o
+ * escopo vem do país, não da escolha de quem avalia. Assim uma cidade nunca
+ * aparece nos dois filtros com médias partidas.
+ */
+const escopoDoPais = (pais) => (BRASIL.includes(norm(pais)) ? 'nacional' : 'internacional');
+
 const mesmoDestino = (pais, cidade) => [
   sqlWhere(col('pais_norm'), fn('public.norm', pais)),
   sqlWhere(col('cidade_norm'), fn('public.norm', cidade))
@@ -14,21 +26,25 @@ const mesmoDestino = (pais, cidade) => [
 /**
  * Um usuário registra uma única avaliação por destino, editável depois.
  * Repetir o destino atualiza a nota em vez de criar uma segunda linha.
+ * O escopo enviado pelo app é ignorado: vem sempre do país.
  */
 const registrar = async (dados, userId) => {
+  const { escopo: _ignorado, ...resto } = dados;
+  const escopo = escopoDoPais(resto.pais);
+
   const existente = await AvaliacaoDestino.findOne({
     where: {
       usuario_id: userId,
-      [Op.and]: mesmoDestino(dados.pais, dados.cidade)
+      [Op.and]: mesmoDestino(resto.pais, resto.cidade)
     }
   });
 
   if (existente) {
-    await existente.update({ nota: dados.nota, escopo: dados.escopo, pais: dados.pais, cidade: dados.cidade });
+    await existente.update({ nota: resto.nota, escopo, pais: resto.pais, cidade: resto.cidade });
     return { avaliacao: existente, criada: false };
   }
 
-  const avaliacao = await AvaliacaoDestino.create({ ...dados, usuario_id: userId });
+  const avaliacao = await AvaliacaoDestino.create({ ...resto, escopo, usuario_id: userId });
   return { avaliacao, criada: true };
 };
 
@@ -47,20 +63,22 @@ const excluir = async (id, userId, isAdmin) => {
 /**
  * Média por país ou por cidade, dentro de um escopo. Agrupa pelas colunas
  * normalizadas para que "São Paulo" e "Sao Paulo" contem como o mesmo destino,
- * e devolve a grafia mais comum para exibição.
+ * e devolve a grafia mais comum (mode) para exibição.
+ * Cidades agrupam por país + cidade: "Santiago" do Chile e da Espanha são
+ * destinos diferentes.
  */
 const agrupar = async (escopo, chave) => {
-  const coluna = chave === 'pais' ? 'pais_norm' : 'cidade_norm';
+  const colunas = chave === 'pais' ? 'pais_norm' : 'pais_norm, cidade_norm';
   const rotulo = chave === 'pais' ? 'pais' : 'cidade';
 
   const linhas = await sequelize.query(
-    `SELECT max(${rotulo}) AS nome,
-            max(pais)      AS pais,
-            avg(nota)      AS media,
-            count(*)       AS qtd
+    `SELECT mode() WITHIN GROUP (ORDER BY ${rotulo}) AS nome,
+            mode() WITHIN GROUP (ORDER BY pais)      AS pais,
+            avg(nota)                                AS media,
+            count(*)                                 AS qtd
        FROM avaliacoes_destino
       WHERE escopo = :escopo
-      GROUP BY ${coluna}
+      GROUP BY ${colunas}
       ORDER BY avg(nota) DESC, count(*) DESC`,
     { replacements: { escopo }, type: QueryTypes.SELECT }
   );
@@ -88,4 +106,4 @@ const ranking = async (query) => {
   return { escopo, paises, cidades };
 };
 
-module.exports = { registrar, minhas, excluir, ranking, MIN_AVALIACOES };
+module.exports = { registrar, minhas, excluir, ranking, escopoDoPais, MIN_AVALIACOES };

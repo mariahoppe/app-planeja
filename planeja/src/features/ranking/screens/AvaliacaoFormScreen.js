@@ -5,24 +5,25 @@ import { Button } from '../../../components/atoms/Button';
 import { FormField } from '../../../components/molecules/FormField';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
+import { useToast } from '../../../contexts/ToastContext';
 import * as destinoService from '../../destinos/services/destinoService';
-import { ESCOPOS } from '../../destinos/validacao';
 import { NotaSlider } from '../components/NotaSlider';
 import { formatarNota, mesmoDestino, validarAvaliacao } from '../notas';
 import * as avaliacaoService from '../services/avaliacaoService';
 
 /**
- * Avaliar o custo-benefício de um destino. Sem parâmetro, é uma avaliação nova
- * (dá para puxar cidade e país dos destinos da pessoa); com route.params.avaliacao,
- * edita a nota daquele destino e mostra "Excluir".
+ * Avaliar o custo-benefício de um destino (RF-12). Sem parâmetro, é uma avaliação
+ * nova (dá para puxar cidade e país dos destinos da pessoa); com
+ * route.params.avaliacao, edita a nota daquele destino e mostra "Excluir".
+ * Não há campo de escopo: a API decide nacional/internacional pelo país.
  */
 export function AvaliacaoFormScreen({ route, navigation }) {
   const avaliacao = route.params?.avaliacao;
   const editando = Boolean(avaliacao);
+  const toast = useToast();
 
   const [cidade, setCidade] = useState(avaliacao?.cidade ?? '');
   const [pais, setPais] = useState(avaliacao?.pais ?? '');
-  const [escopo, setEscopo] = useState(avaliacao?.escopo ?? 'internacional');
   const [nota, setNota] = useState(avaliacao ? Number(avaliacao.nota) : null);
 
   const [destinos, setDestinos] = useState([]);
@@ -44,7 +45,6 @@ export function AvaliacaoFormScreen({ route, navigation }) {
   function usarDestino(d) {
     setCidade(d.cidade);
     setPais(d.pais);
-    setEscopo(d.escopo);
     setErros({});
   }
 
@@ -56,7 +56,8 @@ export function AvaliacaoFormScreen({ route, navigation }) {
     try {
       setSalvando(true);
       // A API guarda uma avaliação por destino: repetir o destino só atualiza a nota.
-      await avaliacaoService.registrar({ cidade: cidade.trim(), pais: pais.trim(), escopo, nota });
+      await avaliacaoService.registrar({ cidade: cidade.trim(), pais: pais.trim(), nota });
+      toast('Avaliação registrada. Ranking atualizado.');
       navigation.goBack();
     } catch (err) {
       Alert.alert('Não foi possível salvar', err.message);
@@ -76,6 +77,7 @@ export function AvaliacaoFormScreen({ route, navigation }) {
     try {
       setExcluindo(true);
       await avaliacaoService.excluir(avaliacao.id);
+      toast('Avaliação excluída. Ranking atualizado.');
       navigation.goBack();
     } catch (err) {
       Alert.alert('Não foi possível excluir', err.message);
@@ -85,8 +87,8 @@ export function AvaliacaoFormScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={editando ? 'Editar avaliação' : 'Avaliar destino'}
-      titulo={editando ? avaliacao.cidade : 'Valeu a pena?'}
+      sobretitulo={editando ? 'Editar avaliação' : 'Avaliar'}
+      titulo={editando ? avaliacao.cidade : 'Custo-benefício'}
       aoVoltar={() => navigation.goBack()}
     >
       {editando ? (
@@ -134,26 +136,12 @@ export function AvaliacaoFormScreen({ route, navigation }) {
         </>
       )}
 
-      <FormField label="Escopo" dica="Nacional = dentro do Brasil">
-        <View style={styles.opcoes}>
-          {ESCOPOS.map((e) => (
-            <Button
-              key={e.valor}
-              titulo={e.rotulo}
-              pequeno
-              variante={escopo === e.valor ? 'primario' : 'secundario'}
-              onPress={() => setEscopo(e.valor)}
-            />
-          ))}
-        </View>
-      </FormField>
-
-      <FormField label="Custo-benefício">
+      <FormField label="Nota de custo-benefício" dica="0 = caro para o que oferece · 10 = vale cada centavo">
         <NotaSlider valor={nota} onChange={setNota} erro={erros.nota} />
       </FormField>
 
       <Button
-        titulo={editando ? 'Salvar nova nota' : 'Publicar avaliação'}
+        titulo={editando ? 'Salvar nova nota' : 'Registrar avaliação'}
         variante="primario"
         bloco
         carregando={salvando}
