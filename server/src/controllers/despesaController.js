@@ -4,7 +4,7 @@ const isAdmin = (req) => req.user.perfil === 'admin';
 
 const listar = async (req, res, next) => {
   try {
-    const data = await despesaService.listar(req.params.id, req.user.id, isAdmin(req));
+    const data = await despesaService.listar(req.params.id, req.user.id, isAdmin(req), req.query);
     res.json({ data });
   } catch (err) { next(err); }
 };

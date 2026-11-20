@@ -166,19 +166,12 @@ const contas = async (id, userId, isAdmin) => {
       include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'foto_url'] }],
       order: [['entrou_em', 'ASC']]
     }),
+    // Só o necessário para o cálculo: a lista de lançamentos vem paginada de
+    // GET /grupos/:id/despesas (RNF-04), não daqui.
     Despesa.findAll({
       where: { grupo_id: id },
-      include: [
-        {
-          model: DespesaRateio,
-          as: 'rateios',
-          attributes: ['usuario_id', 'valor_devido'],
-          // O formulário de edição mostra pelo nome quem saiu do grupo mas está no rateio
-          include: [{ model: Usuario, as: 'usuario', attributes: ['id', 'nome', 'foto_url'] }]
-        },
-        { model: Usuario, as: 'pagador', attributes: ['id', 'nome', 'foto_url'] }
-      ],
-      order: [['data', 'DESC'], ['id', 'DESC']]
+      attributes: ['id', 'valor', 'pagador_id'],
+      include: [{ model: DespesaRateio, as: 'rateios', attributes: ['usuario_id', 'valor_devido'] }]
     })
   ]);
 
@@ -199,7 +192,7 @@ const contas = async (id, userId, isAdmin) => {
   return {
     total: resumo.total,
     total_por_pessoa: resumo.total_por_pessoa,
-    despesas,
+    total_despesas: despesas.length,
     saldos: resumo.saldos.map((s) => ({ ...s, usuario: nomePorId[s.usuario_id] })),
     acertos: resumo.acertos.map((a) => ({
       ...a,

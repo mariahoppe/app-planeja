@@ -5,23 +5,35 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Button } from '../../../components/atoms/Button';
 import { EmptyState } from '../../../components/molecules/EmptyState';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
+import { RodapeLista } from '../../../components/molecules/RodapeLista';
 import { colors, fonts } from '../../../config/theme';
+import { useListaPaginada } from '../../../hooks/useListaPaginada';
 import * as despesaService from '../services/despesaService';
 import { DespesaItem } from './DespesaItem';
 import { ResumoContas } from './ResumoContas';
 
 /**
- * Aba Despesas do grupo: totais e acerto de contas (RF-23 e RF-24) no topo e,
- * embaixo, os lançamentos (mais recentes primeiro), que abrem o formulário para
- * editar ou excluir. Uma só chamada (GET /contas) traz tudo já recalculado;
- * recarrega ao voltar do formulário.
+ * Aba Despesas do grupo, na ordem do protótipo: totais, lançamentos, saldos e
+ * acerto de contas (RF-23 e RF-24).
+ * - GET /contas traz totais, saldos e acerto já recalculados.
+ * - Os lançamentos (mais recentes primeiro) vêm em páginas (RNF-04); como ficam
+ *   no meio da aba, as páginas seguintes vêm pelo "Carregar mais".
+ * Tocar num lançamento abre o formulário; tudo recarrega ao voltar dele.
  */
 export function AbaDespesas({ grupo, usuarioId, navigation }) {
   const [contas, setContas] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState(null);
 
+  const buscarPagina = useCallback(
+    (pagina, limite) => despesaService.listar(grupo.id, { pagina, limite }),
+    [grupo.id]
+  );
+  const lista = useListaPaginada(buscarPagina);
+  const { recarregar: recarregarLista } = lista;
+
   const carregar = useCallback(async () => {
+    recarregarLista();
     try {
       setErro(null);
       setContas(await despesaService.contas(grupo.id));
@@ -30,7 +42,7 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
     } finally {
       setCarregando(false);
     }
-  }, [grupo.id]);
+  }, [grupo.id, recarregarLista]);
 
   useFocusEffect(
     useCallback(() => {
@@ -45,9 +57,7 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
     return <EstadoCarga carregando={carregando} erro={erro} onTentarDeNovo={carregar} />;
   }
 
-  const despesas = contas.despesas || [];
-
-  if (despesas.length === 0) {
+  if (contas.total_despesas === 0) {
     return (
       <EmptyState
         titulo="Sem despesas"
@@ -57,27 +67,30 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <ResumoContas contas={contas} totalDespesas={despesas.length} usuarioId={usuarioId} />
-
+  const lancamentos = (
+    <View>
       <View style={styles.cabecalho}>
         <Text style={styles.rotulo}>Lançamentos</Text>
         <Button titulo="+ Nova despesa" variante="primario" pequeno onPress={nova} />
       </View>
-
-      <View>
-        {despesas.map((d) => (
-          <DespesaItem key={d.id} despesa={d} usuarioId={usuarioId} onPress={() => abrir(d)} />
-        ))}
-      </View>
+      {lista.erro || lista.itens === null ? (
+        <EstadoCarga carregando={!lista.erro} erro={lista.erro} onTentarDeNovo={recarregarLista} />
+      ) : (
+        <>
+          {lista.itens.map((d) => (
+            <DespesaItem key={d.id} despesa={d} usuarioId={usuarioId} onPress={() => abrir(d)} />
+          ))}
+          <RodapeLista temMais={lista.temMais} carregando={lista.carregandoMais} onCarregarMais={lista.carregarMais} />
+        </>
+      )}
     </View>
   );
+
+  return <ResumoContas contas={contas} usuarioId={usuarioId} lancamentos={lancamentos} />;
 }
 
 const styles = StyleSheet.create({
-  container: { gap: 10 },
-  cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 },
+  cabecalho: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 },
   rotulo: {
     fontFamily: fonts.corpoForte,
     fontSize: 10,

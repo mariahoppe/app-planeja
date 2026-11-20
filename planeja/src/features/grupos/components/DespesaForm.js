@@ -51,7 +51,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
   const [valor, setValor] = useState(editando ? textoValor(despesa.valor) : '');
   const [data, setData] = useState(despesa?.data ?? hojeISO());
   const [pagadorId, setPagadorId] = useState(despesa?.pagador_id ?? usuarioId);
-  const [categoria, setCategoria] = useState(despesa?.categoria ?? 'outros');
+  const [categoria, setCategoria] = useState(despesa?.categoria ?? 'alimentacao');
   const [modo, setModo] = useState(despesa?.modo_divisao ?? 'igual');
   const [valores, setValores] = useState(() => {
     const inicial = {};
@@ -124,7 +124,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
     <>
       <FormField
         label="Descrição"
-        placeholder="Jantar no Bairro Alto"
+        placeholder="Jantar no bistrô"
         value={descricao}
         onChangeText={(t) => { setDescricao(t); limparErro('descricao'); }}
         maxLength={MAX_DESCRICAO}
@@ -133,7 +133,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
 
       <View style={styles.grid2}>
         <FormField
-          label="Valor (R$)"
+          label="Valor total"
           placeholder="0,00"
           value={valor}
           onChangeText={(t) => { setValor(t); limparErro('valor'); }}
@@ -221,7 +221,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
       </View>
 
       <Button
-        titulo={editando ? 'Salvar alterações' : 'Adicionar despesa'}
+        titulo={editando ? 'Salvar alterações' : 'Registrar despesa'}
         variante="primario"
         bloco
         carregando={carregando}

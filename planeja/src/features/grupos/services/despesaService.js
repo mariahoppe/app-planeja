@@ -2,8 +2,9 @@ import { get, post, put, del } from '../../../api/api';
 
 // Toda despesa vive dentro de um grupo, por isso toda URL começa com /grupos/:grupoId.
 
-export function listar(grupoId) {
-  return get(`/grupos/${grupoId}/despesas`);
+// filtros (opcional): { pagina, limite } para a lista paginada (RNF-04)
+export function listar(grupoId, filtros) {
+  return get(`/grupos/${grupoId}/despesas`, filtros);
 }
 
 export function criar(grupoId, dados) {
