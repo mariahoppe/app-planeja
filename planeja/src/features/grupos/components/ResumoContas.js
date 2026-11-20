@@ -24,6 +24,10 @@ export function ResumoContas({ contas, totalDespesas, usuarioId }) {
   const pagar = acertos.filter((a) => a.de === usuarioId);
   const receber = acertos.filter((a) => a.para === usuarioId);
 
+  // Quem saiu do grupo continua nas contas das despesas de que participou (saiu: true na API)
+  const sairam = new Set(saldos.filter((s) => s.saiu).map((s) => s.usuario_id));
+  const nomeNaConta = (id, usuario) => `${nomeDe(usuario)}${sairam.has(id) ? ' (saiu)' : ''}`;
+
   return (
     <View style={styles.container}>
       <View style={styles.caixas}>
@@ -32,10 +36,14 @@ export function ResumoContas({ contas, totalDespesas, usuarioId }) {
           valor={moeda(total)}
           sub={`${totalDespesas} ${totalDespesas === 1 ? 'despesa' : 'despesas'}`}
         />
-        <CaixaResumo rotulo="Por integrante" valor={moeda(porPessoa)} sub={`média entre ${saldos.length}`} />
+        <CaixaResumo
+          rotulo="Por integrante"
+          valor={moeda(porPessoa)}
+          sub={`média entre ${saldos.length - sairam.size}`}
+        />
       </View>
 
-      {meu ? <MinhaSituacao saldo={meu} pagar={pagar} receber={receber} /> : null}
+      {meu ? <MinhaSituacao saldo={meu} pagar={pagar} receber={receber} nomeNaConta={nomeNaConta} /> : null}
 
       <View>
         <Text style={styles.rotulo}>Acerto de contas</Text>
@@ -51,9 +59,9 @@ export function ResumoContas({ contas, totalDespesas, usuarioId }) {
                 style={[styles.acerto, euPago && styles.linhaPagar, euRecebo && styles.linhaReceber]}
               >
                 <Text style={[styles.acertoTexto, (euPago || euRecebo) && styles.textoMeu]}>
-                  <Text style={styles.forte}>{euPago ? 'Você' : nomeDe(a.de_usuario)}</Text>
+                  <Text style={styles.forte}>{euPago ? 'Você' : nomeNaConta(a.de, a.de_usuario)}</Text>
                   {' paga para '}
-                  <Text style={styles.forte}>{euRecebo ? 'você' : nomeDe(a.para_usuario)}</Text>
+                  <Text style={styles.forte}>{euRecebo ? 'você' : nomeNaConta(a.para, a.para_usuario)}</Text>
                 </Text>
                 <Text style={[styles.acertoValor, euPago && styles.pagar, euRecebo && styles.receber]}>
                   {moeda(a.valor)}
@@ -75,7 +83,7 @@ export function ResumoContas({ contas, totalDespesas, usuarioId }) {
               <Avatar nome={s.usuario?.nome} fotoUri={s.usuario?.foto_url} tamanho={32} />
               <View style={styles.textos}>
                 <Text style={[styles.nome, eu && styles.nomeEu]} numberOfLines={1}>
-                  {eu ? 'Você' : nomeDe(s.usuario)}
+                  {eu ? 'Você' : nomeNaConta(s.usuario_id, s.usuario)}
                 </Text>
                 <Text style={styles.sub}>
                   pagou {moeda(s.pago)} · parte {moeda(s.devido)}
@@ -96,7 +104,7 @@ export function ResumoContas({ contas, totalDespesas, usuarioId }) {
 }
 
 /** Cartão "Sua situação": quanto a pessoa recebe ou paga, e de/para quem. */
-function MinhaSituacao({ saldo, pagar, receber }) {
+function MinhaSituacao({ saldo, pagar, receber, nomeNaConta }) {
   const credor = saldo.saldo > CENTAVO;
   const devedor = saldo.saldo < -CENTAVO;
 
@@ -104,10 +112,10 @@ function MinhaSituacao({ saldo, pagar, receber }) {
   let detalhe = 'Não deve nada e ninguém te deve.';
   if (credor) {
     titulo = `Você tem ${moeda(saldo.saldo)} a receber`;
-    detalhe = receber.map((a) => `${nomeDe(a.de_usuario)} te paga ${moeda(a.valor)}`).join('\n');
+    detalhe = receber.map((a) => `${nomeNaConta(a.de, a.de_usuario)} te paga ${moeda(a.valor)}`).join('\n');
   } else if (devedor) {
     titulo = `Você tem ${moeda(-saldo.saldo)} a pagar`;
-    detalhe = pagar.map((a) => `Pague ${moeda(a.valor)} para ${nomeDe(a.para_usuario)}`).join('\n');
+    detalhe = pagar.map((a) => `Pague ${moeda(a.valor)} para ${nomeNaConta(a.para, a.para_usuario)}`).join('\n');
   }
 
   return (
