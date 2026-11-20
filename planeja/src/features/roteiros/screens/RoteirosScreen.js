@@ -1,12 +1,11 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-
 import { Button } from '../../../components/atoms/Button';
 import { Input } from '../../../components/atoms/Input';
 import { EmptyState } from '../../../components/molecules/EmptyState';
 import { EstadoCarga } from '../../../components/molecules/EstadoCarga';
 import { RodapeLista } from '../../../components/molecules/RodapeLista';
+import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { useListaPaginada } from '../../../hooks/useListaPaginada';
 import { CartaoRoteiro } from '../components/CartaoRoteiro';
@@ -50,10 +49,11 @@ export function RoteirosScreen({ navigation, seletor }) {
     <ScreenTemplate
       sobretitulo="Planejamento"
       titulo="Roteiros"
-      direita={<Button titulo="+ Novo" pequeno onPress={novo} />}
       aoChegarNoFim={carregarMais}
     >
       {seletor}
+
+      <Button titulo="+ Novo roteiro" variante="primario" bloco onPress={novo} />
 
       <Input
         placeholder="Buscar pelo título"
@@ -64,17 +64,7 @@ export function RoteirosScreen({ navigation, seletor }) {
         accessibilityLabel="Buscar roteiro pelo título"
       />
 
-      <View style={styles.filtros}>
-        {FILTROS_STATUS.map((f) => (
-          <Button
-            key={f.valor}
-            titulo={f.rotulo}
-            pequeno
-            variante={status === f.valor ? 'primario' : 'secundario'}
-            onPress={() => setStatus(f.valor)}
-          />
-        ))}
-      </View>
+      <SeletorSegmentado opcoes={FILTROS_STATUS} valor={status} onChange={setStatus} />
 
       {erro || roteiros === null ? (
         <EstadoCarga carregando={!erro} erro={erro} onTentarDeNovo={recarregar} />
@@ -82,11 +72,7 @@ export function RoteirosScreen({ navigation, seletor }) {
         filtrando ? (
           <EmptyState titulo="Nada encontrado" mensagem="Nenhuma viagem combina com a busca ou o filtro." />
         ) : (
-          <EmptyState
-            titulo="Nenhum roteiro ainda"
-            mensagem="Crie a primeira viagem: escolha o destino, as datas e depois adicione as atividades."
-            acao={<Button titulo="+ Criar roteiro" variante="primario" onPress={novo} />}
-          />
+          <EmptyState titulo="Nenhum roteiro" mensagem="Crie um roteiro a partir de um destino cadastrado." />
         )
       ) : (
         <>
@@ -99,7 +85,3 @@ export function RoteirosScreen({ navigation, seletor }) {
     </ScreenTemplate>
   );
 }
-
-const styles = StyleSheet.create({
-  filtros: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-});
