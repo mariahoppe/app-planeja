@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { Usuario } = require('../models');
 const { AppError } = require('../utils/errorHandler');
+const { normalizarEmail, ondeEmail } = require('../utils/email');
 
 const SALT_ROUNDS = 12;
 const MAX_ERROS_CODIGO = 5;
@@ -15,8 +16,9 @@ const gerarToken = (usuario) => {
   );
 };
 
-const registro = async ({ nome, email, senha }) => {
-  const existe = await Usuario.findOne({ where: { email } });
+const registro = async ({ nome, email: emailDigitado, senha }) => {
+  const email = normalizarEmail(emailDigitado);
+  const existe = await Usuario.findOne({ where: ondeEmail(email) });
   if (existe) throw new AppError('Email já cadastrado', 409);
 
   const senha_hash = await bcrypt.hash(senha, SALT_ROUNDS);
@@ -31,7 +33,7 @@ const registro = async ({ nome, email, senha }) => {
 };
 
 const login = async ({ email, senha }) => {
-  const usuario = await Usuario.scope('comSenha').findOne({ where: { email } });
+  const usuario = await Usuario.scope('comSenha').findOne({ where: ondeEmail(email) });
   if (!usuario) throw new AppError('Email ou senha incorretos', 401);
 
   const senhaValida = await bcrypt.compare(senha, usuario.senha_hash);
@@ -52,7 +54,7 @@ const login = async ({ email, senha }) => {
 };
 
 const esqueciSenha = async ({ email }) => {
-  const usuario = await Usuario.findOne({ where: { email } });
+  const usuario = await Usuario.findOne({ where: ondeEmail(email) });
 
   // Retorna sempre sucesso para não revelar se o email existe na base (segurança)
   if (!usuario) {
@@ -105,7 +107,7 @@ const esqueciSenha = async ({ email }) => {
 
 const redefinirSenha = async ({ email, codigo, senha }) => {
   // Busca pelo e-mail: duas pessoas podem receber o mesmo código de 6 dígitos
-  const usuario = await Usuario.scope('comSenha').findOne({ where: { email } });
+  const usuario = await Usuario.scope('comSenha').findOne({ where: ondeEmail(email) });
 
   if (!usuario || !usuario.reset_token || usuario.reset_token_expira < new Date()) {
     throw new AppError('Código inválido ou expirado', 400);

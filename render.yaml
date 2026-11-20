@@ -29,6 +29,11 @@ services:
         sync: false
       - key: CORS_ORIGIN
         sync: false
+      # Limpeza das fotos das dicas no Storage (a service_role é secreta)
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT

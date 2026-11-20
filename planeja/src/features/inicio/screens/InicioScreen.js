@@ -1,35 +1,35 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Button } from '../../../components/atoms/Button';
+import { Card } from '../../../components/atoms/Card';
+import { Surgir } from '../../../components/atoms/Surgir';
+import { TituloSecao } from '../../../components/atoms/TituloSecao';
 import { ErrorMessage } from '../../../components/molecules/ErrorMessage';
+import { ScreenTemplate } from '../../../components/templates/ScreenTemplate';
 import { colors, fonts } from '../../../config/theme';
 import { useAuth } from '../../../contexts/AuthContext';
 import { CartaoViagem } from '../components/CartaoViagem';
 import { Indicadores } from '../components/Indicadores';
 import { OutrosRoteiros } from '../components/OutrosRoteiros';
 import { ProximasAtividades } from '../components/ProximasAtividades';
-import { Surgir } from '../../../components/atoms/Surgir';
-import { hojePorExtenso, saudacao } from '../formatos';
 import * as dashboardService from '../services/dashboardService';
 
 const MARGEM = 18;
 
 /**
- * Painel de quem está logado (GET /dashboard): próxima viagem em destaque,
- * contadores, atividades pendentes e os demais roteiros.
+ * Painel de quem está logado (GET /dashboard), com o cabeçalho do protótipo
+ * ("Olá, Maria" / Início / avatar): próxima viagem em destaque, contadores,
+ * atalhos, atividades pendentes e os demais roteiros.
  * O avatar abre o Perfil, que fica na pilha acima das abas (AppStack).
  */
 export function InicioScreen({ navigation }) {
   const { usuario } = useAuth();
-  const margens = useSafeAreaInsets();
 
   const [painel, setPainel] = useState(null);
   const [erro, setErro] = useState(null);
-  const [atualizando, setAtualizando] = useState(false);
 
   const carregar = useCallback(async () => {
     try {
@@ -47,12 +47,6 @@ export function InicioScreen({ navigation }) {
     }, [carregar])
   );
 
-  async function puxarParaAtualizar() {
-    setAtualizando(true);
-    await carregar();
-    setAtualizando(false);
-  }
-
   const primeiroNome = usuario.nome.trim().split(' ')[0];
   const viagem = painel?.proxima_viagem;
   const abrirRoteiro = (roteiro) => navigation.navigate('RoteiroDetalhe', { roteiro });
@@ -60,111 +54,124 @@ export function InicioScreen({ navigation }) {
     painel?.totais.destinos ? navigation.navigate('RoteiroForm') : navigation.navigate('DestinoForm');
 
   return (
-    <View style={styles.tela}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.corpo,
-          { paddingTop: margens.top + 14, paddingBottom: margens.bottom + 28 },
-        ]}
-        refreshControl={
-          <RefreshControl
-            refreshing={atualizando}
-            onRefresh={puxarParaAtualizar}
-            tintColor={colors.acento}
-            colors={[colors.acento]}
+    <ScreenTemplate
+      sobretitulo={`Olá, ${primeiroNome}`}
+      titulo="Início"
+      direita={
+        <Avatar nome={usuario.nome} fotoUri={usuario.foto_url} tamanho={28} onPress={() => navigation.navigate('Perfil')} />
+      }
+      aoAtualizar={carregar}
+    >
+      {erro ? (
+        <View style={styles.erro}>
+          <ErrorMessage mensagem={erro} />
+          <Button titulo="Tentar de novo" onPress={carregar} />
+        </View>
+      ) : null}
+
+      {!painel ? (
+        erro ? null : <Esqueleto />
+      ) : (
+        <>
+          <Surgir atraso={90}>
+            <CartaoViagem viagem={viagem} onPress={() => abrirRoteiro(viagem)} onPlanejar={planejar} />
+          </Surgir>
+
+          <Indicadores
+            atrasoInicial={220}
+            itens={[
+              {
+                chave: 'destinos',
+                rotulo: 'Destinos',
+                valor: painel.totais.destinos,
+                onPress: () => navigation.navigate('Roteiros', { aba: 'destinos' }),
+              },
+              {
+                chave: 'roteiros',
+                rotulo: 'Roteiros',
+                valor: painel.totais.roteiros,
+                onPress: () => navigation.navigate('Roteiros', { aba: 'roteiros' }),
+              },
+              {
+                chave: 'dicas',
+                rotulo: 'Dicas publicadas',
+                valor: painel.totais.dicas_publicadas,
+                onPress: () => navigation.navigate('Dicas', { aba: 'dicas' }),
+              },
+              {
+                chave: 'grupos',
+                rotulo: 'Grupos',
+                valor: painel.totais.grupos,
+                onPress: () => navigation.navigate('Grupos'),
+              },
+            ]}
           />
-        }
-      >
-        <Surgir style={styles.cabecalho}>
-          <View style={styles.titulos}>
-            <Text style={styles.sobretitulo}>{hojePorExtenso()}</Text>
-            <Text style={styles.titulo} accessibilityRole="header">
-              {saudacao()},{'\n'}
-              <Text style={styles.nome}>{primeiroNome}</Text>
-            </Text>
-          </View>
-          <Avatar nome={usuario.nome} fotoUri={usuario.foto_url} tamanho={46} onPress={() => navigation.navigate('Perfil')} />
-        </Surgir>
 
-        {erro ? (
-          <View style={styles.erro}>
-            <ErrorMessage mensagem={erro} />
-            <Button titulo="Tentar de novo" onPress={carregar} />
-          </View>
-        ) : null}
-
-        {!painel ? (
-          erro ? null : <Esqueleto />
-        ) : (
-          <>
-            <Surgir atraso={90}>
-              <CartaoViagem viagem={viagem} onPress={() => abrirRoteiro(viagem)} onPlanejar={planejar} />
-            </Surgir>
-
-            <Indicadores
-              atrasoInicial={220}
-              itens={[
-                {
-                  chave: 'destinos',
-                  rotulo: 'Destinos',
-                  valor: painel.totais.destinos,
-                  onPress: () => navigation.navigate('Roteiros', { aba: 'destinos' }),
-                },
-                {
-                  chave: 'roteiros',
-                  rotulo: 'Roteiros',
-                  valor: painel.totais.roteiros,
-                  onPress: () => navigation.navigate('Roteiros', { aba: 'roteiros' }),
-                },
-                {
-                  chave: 'dicas',
-                  rotulo: 'Dicas publicadas',
-                  valor: painel.totais.dicas_publicadas,
-                  onPress: () => navigation.navigate('Dicas', { aba: 'dicas' }),
-                },
-                {
-                  chave: 'grupos',
-                  rotulo: 'Grupos',
-                  valor: painel.totais.grupos,
-                  onPress: () => navigation.navigate('Grupos'),
-                },
-              ]}
-            />
-
-            {painel.proximas_atividades.length > 0 ? (
-              <Surgir atraso={520} style={styles.secao}>
-                <Secao titulo="Próximas atividades" apoio={viagem?.destino.cidade} />
-                <ProximasAtividades atividades={painel.proximas_atividades} onPress={() => abrirRoteiro(viagem)} />
-              </Surgir>
-            ) : null}
-
-            {painel.outros_roteiros.length > 0 ? (
-              <Surgir atraso={620} style={styles.secao}>
-                <Secao titulo="Também no radar" apoio={`${painel.outros_roteiros.length} roteiros`} />
-                <OutrosRoteiros roteiros={painel.outros_roteiros} onAbrir={abrirRoteiro} margem={MARGEM} />
-              </Surgir>
-            ) : null}
-
-            <Surgir atraso={700} style={styles.atalhos}>
-              <Button titulo="+ Destino" style={styles.atalho} onPress={() => navigation.navigate('DestinoForm')} />
-              <Button
-                titulo="+ Roteiro"
-                variante="primario"
-                style={styles.atalho}
-                onPress={() => navigation.navigate('RoteiroForm')}
+          <Surgir atraso={420} style={styles.secao}>
+            <TituloSecao>Atalhos</TituloSecao>
+            <View style={styles.grade}>
+              <Atalho
+                titulo="Meus destinos"
+                sub={`${painel.totais.destinos} ${painel.totais.destinos === 1 ? 'cidade cadastrada' : 'cidades cadastradas'}`}
+                onPress={() => navigation.navigate('Roteiros', { aba: 'destinos' })}
               />
+              <Atalho
+                titulo="Buscar dicas"
+                sub="Veja o que outros viajantes recomendam"
+                onPress={() => navigation.navigate('Dicas', { aba: 'dicas' })}
+              />
+              <Atalho
+                titulo="Ranking custo-benefício"
+                sub="Países e cidades melhor avaliados"
+                onPress={() => navigation.navigate('Dicas', { aba: 'ranking' })}
+              />
+              {viagem?.grupo ? (
+                <Atalho
+                  titulo={viagem.grupo.nome}
+                  sub={`${viagem.grupo.total_integrantes} integrantes · despesas da viagem`}
+                  onPress={() => navigation.navigate('GrupoDetalhe', { id: viagem.grupo.id, aba: 'despesas' })}
+                />
+              ) : null}
+            </View>
+          </Surgir>
+
+          {painel.proximas_atividades.length > 0 ? (
+            <Surgir atraso={520} style={styles.secao}>
+              <Secao titulo="Próximas atividades" apoio={viagem?.destino.cidade} />
+              <ProximasAtividades atividades={painel.proximas_atividades} onPress={() => abrirRoteiro(viagem)} />
             </Surgir>
-          </>
-        )}
-      </ScrollView>
-    </View>
+          ) : null}
+
+          {painel.outros_roteiros.length > 0 ? (
+            <Surgir atraso={620} style={styles.secao}>
+              <Secao titulo="Também no radar" apoio={`${painel.outros_roteiros.length} roteiros`} />
+              <OutrosRoteiros roteiros={painel.outros_roteiros} onAbrir={abrirRoteiro} margem={MARGEM} />
+            </Surgir>
+          ) : null}
+        </>
+      )}
+    </ScreenTemplate>
+  );
+}
+
+// Um card de atalho do protótipo (.atalhos): título curto e uma linha de apoio.
+function Atalho({ titulo, sub, onPress }) {
+  return (
+    <Card onPress={onPress} style={styles.atalho}>
+      <Text style={styles.atalhoTitulo} numberOfLines={2}>
+        {titulo}
+      </Text>
+      <Text style={styles.atalhoSub} numberOfLines={2}>
+        {sub}
+      </Text>
+    </Card>
   );
 }
 
 function Secao({ titulo, apoio }) {
   return (
     <View style={styles.secaoTopo}>
-      <Text style={styles.secaoTitulo}>{titulo}</Text>
+      <TituloSecao>{titulo}</TituloSecao>
       {apoio ? <Text style={styles.secaoApoio}>{apoio}</Text> : null}
     </View>
   );
@@ -198,29 +205,15 @@ function Esqueleto() {
 }
 
 const styles = StyleSheet.create({
-  tela: { flex: 1, backgroundColor: colors.papel },
-  corpo: { paddingHorizontal: MARGEM, gap: 18 },
-  cabecalho: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 12 },
-  titulos: { flex: 1 },
-  sobretitulo: {
-    fontFamily: fonts.corpoForte,
-    fontSize: 10,
-    letterSpacing: 1.5,
-    textTransform: 'uppercase',
-    color: colors.acento,
-    marginBottom: 4,
-  },
-  titulo: { fontFamily: fonts.titulo, fontSize: 30, lineHeight: 35, letterSpacing: -0.4, color: colors.suave },
-  nome: { fontFamily: fonts.tituloMedio, color: colors.tinta },
   erro: { gap: 10 },
   secao: { gap: 10 },
   secaoTopo: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
-  secaoTitulo: { fontFamily: fonts.tituloMedio, fontSize: 20, color: colors.tinta },
-  secaoApoio: { fontFamily: fonts.corpo, fontSize: 13, color: colors.suave },
-  atalhos: { flexDirection: 'row', gap: 11 },
-  atalho: { flex: 1 },
-  esqueleto: { gap: 18 },
+  secaoApoio: { fontFamily: fonts.corpo, fontSize: 12, color: colors.suave },
   grade: { flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
+  atalho: { flexBasis: '46%', flexGrow: 1 },
+  atalhoTitulo: { fontFamily: fonts.corpoSemi, fontSize: 14, color: colors.tinta },
+  atalhoSub: { fontFamily: fonts.corpo, fontSize: 11.5, lineHeight: 15, color: colors.suave },
+  esqueleto: { gap: 18 },
   osso: { backgroundColor: colors.linhaSuave, borderRadius: 16 },
   ossoCartao: { height: 290, borderRadius: 22 },
   ossoBloco: { flexBasis: '46%', flexGrow: 1, height: 96 },

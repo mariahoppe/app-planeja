@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 12,
-    backgroundColor: 'rgba(26,26,26,0.4)',
+    backgroundColor: colors.sombraFundo,
   },
   fechar: {
     position: 'absolute',

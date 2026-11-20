@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const { Usuario } = require('../models');
 const { AppError } = require('../utils/errorHandler');
+const { normalizarEmail, ondeEmail } = require('../utils/email');
 
 const SALT_ROUNDS = 12;
 
@@ -34,9 +35,10 @@ const atualizar = async (id, dados, reqUser) => {
     throw new AppError('Apenas administradores podem alterar perfil', 403);
   }
 
-  if (dados.email && dados.email !== usuario.email) {
-    const existe = await Usuario.findOne({ where: { email: dados.email } });
-    if (existe) throw new AppError('Email já cadastrado', 409);
+  if (dados.email) {
+    dados.email = normalizarEmail(dados.email);
+    const existe = await Usuario.findOne({ where: ondeEmail(dados.email) });
+    if (existe && existe.id !== usuario.id) throw new AppError('Email já cadastrado', 409);
   }
 
   await usuario.update(dados);

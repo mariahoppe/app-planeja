@@ -58,7 +58,7 @@ export function AtividadeForm({ roteiro, atividade, onSubmit, carregando = false
         <FormField
           label="Data"
           erro={erros.data}
-          dica={`${dataBR(roteiro.inicio)} a ${dataBR(roteiro.fim)}`}
+          dica={roteiro.fim ? `${dataBR(roteiro.inicio)} a ${dataBR(roteiro.fim)}` : `A partir de ${dataBR(roteiro.inicio)}`}
           style={styles.coluna}
         >
           <DatePicker

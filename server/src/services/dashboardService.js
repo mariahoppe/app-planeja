@@ -26,7 +26,13 @@ const obterDashboard = async (userId, isAdmin) => {
     include: [
       { model: Destino, as: 'destino', attributes: ['id', 'cidade', 'pais'] },
       { model: Atividade, as: 'atividades', attributes: ['id', 'feita', 'custo', 'dia', 'horario', 'titulo', 'local'] },
-      { model: Grupo, as: 'grupo', attributes: ['id', 'nome'] }
+      {
+        model: Grupo,
+        as: 'grupo',
+        attributes: ['id', 'nome'],
+        // Só para contar: o atalho do grupo no Início mostra "N integrantes"
+        include: [{ model: GrupoMembro, as: 'membros', attributes: ['id'] }]
+      }
     ],
     order: [['inicio', 'ASC']]
   });
@@ -49,7 +55,7 @@ const obterDashboard = async (userId, isAdmin) => {
       fim: r.fim,
       status: r.status,
       destino: r.destino,
-      grupo: r.grupo || null,
+      grupo: r.grupo ? { id: r.grupo.id, nome: r.grupo.nome, total_integrantes: r.grupo.membros.length } : null,
       total_atividades: atividades.length,
       atividades_concluidas: atividades.filter((a) => a.feita).length,
       custo_total: atividades.reduce((s, a) => s + parseFloat(a.custo || 0), 0)

@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Button } from '../../../components/atoms/Button';
+import { Etiqueta } from '../../../components/atoms/Etiqueta';
 import { colors, fonts } from '../../../config/theme';
 
 /**
@@ -24,7 +25,7 @@ export function IntegranteItem({ membro, ehCriador, ehVoce, onRemover, removendo
           {usuario.email}
         </Text>
       </View>
-      {ehCriador ? <Text style={styles.papel}>admin</Text> : null}
+      {ehCriador ? <Etiqueta tipo="acento">admin</Etiqueta> : null}
       {onRemover ? <Button titulo="Remover" pequeno carregando={removendo} onPress={onRemover} /> : null}
     </View>
   );
@@ -43,17 +44,4 @@ const styles = StyleSheet.create({
   nome: { fontFamily: fonts.corpoSemi, fontSize: 15, color: colors.tinta },
   email: { fontFamily: fonts.corpo, fontSize: 12.5, color: colors.suave },
   voce: { fontFamily: fonts.corpo, color: colors.suave },
-  // A etiqueta .tag.acc do protótipo
-  papel: {
-    fontFamily: fonts.corpoForte,
-    fontSize: 9,
-    letterSpacing: 0.9,
-    textTransform: 'uppercase',
-    color: colors.acento,
-    backgroundColor: colors.acentoSuave,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
 });

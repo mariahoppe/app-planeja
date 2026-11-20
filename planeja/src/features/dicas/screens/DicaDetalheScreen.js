@@ -51,16 +51,26 @@ export function DicaDetalheScreen({ route, navigation }) {
     }, [carregar])
   );
 
-  async function excluir() {
-    try {
-      setExcluindo(true);
-      await dicaService.excluir(dica.id);
-      toast('Dica excluída.');
-      navigation.goBack();
-    } catch (e) {
-      Alert.alert('Não foi possível excluir', e.message);
-      setExcluindo(false);
-    }
+  // Pede confirmação, como as demais exclusões do app: a dica e as fotos somem para todos.
+  function excluir() {
+    Alert.alert('Excluir dica?', 'A dica e as fotos dela deixam de aparecer para todos. Não dá para desfazer.', [
+      { text: 'Cancelar', style: 'cancel' },
+      {
+        text: 'Excluir',
+        style: 'destructive',
+        onPress: async () => {
+          try {
+            setExcluindo(true);
+            await dicaService.excluir(dica.id);
+            toast('Dica excluída.');
+            navigation.goBack();
+          } catch (e) {
+            Alert.alert('Não foi possível excluir', e.message);
+            setExcluindo(false);
+          }
+        },
+      },
+    ]);
   }
 
   function avaliacaoRegistrada() {

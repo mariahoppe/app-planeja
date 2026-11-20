@@ -3,6 +3,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Subir } from '../atoms/Subir';
 import { colors, fonts } from '../../config/theme';
+import { AvisoToast } from '../../contexts/ToastContext';
 
 /**
  * Painel que sobe da parte de baixo da tela, igual ao do protótipo.
@@ -44,6 +45,8 @@ export function PainelInferior({ titulo, onFechar, rodape, children }) {
           {rodape ? <View style={styles.rodape}>{rodape}</View> : null}
         </Subir>
       </KeyboardAvoidingView>
+      {/* O Modal cobre o aviso do app; este repete o aviso por cima do painel */}
+      <AvisoToast />
     </Modal>
   );
 }
@@ -52,7 +55,7 @@ const styles = StyleSheet.create({
   fundo: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(26,26,26,0.4)',
+    backgroundColor: colors.sombraFundo,
   },
   painel: {
     maxHeight: '86%',
