@@ -2,6 +2,7 @@ const { Despesa, DespesaRateio, GrupoMembro, Usuario, sequelize } = require('../
 const { AppError } = require('../utils/errorHandler');
 const { exigirAcessoAoGrupo } = require('./permissoes');
 const { rateioDe } = require('./rateio');
+const { paginacao } = require('../utils/paginacao');
 
 const CENTAVO = 0.01;
 
@@ -68,12 +69,14 @@ const gravarRateio = (despesaId, linhas, transaction) =>
     { transaction }
   );
 
-const listar = async (grupoId, userId, isAdmin) => {
+// Lançamentos da aba Despesas, mais recentes primeiro; paginada com ?pagina=&limite= (RNF-04)
+const listar = async (grupoId, userId, isAdmin, query = {}) => {
   await exigirAcessoAoGrupo(grupoId, userId, isAdmin);
   return Despesa.findAll({
     where: { grupo_id: grupoId },
     include: COM_RELACOES,
-    order: [['data', 'DESC'], ['id', 'DESC']]
+    order: [['data', 'DESC'], ['id', 'DESC']],
+    ...paginacao(query)
   });
 };
 
