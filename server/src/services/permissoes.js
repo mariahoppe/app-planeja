@@ -63,4 +63,16 @@ const exigirAdminDoGrupo = async (grupoId, userId, isAdmin) => {
   return grupo;
 };
 
-module.exports = { exigirAcessoAoRoteiro, exigirAcessoAoGrupo, exigirAdminDoGrupo, ehIntegrante };
+/**
+ * Ids dos roteiros que o usuário vê por ser integrante do grupo da viagem
+ * (RF-19). As listas somam estes aos roteiros dos destinos dele.
+ */
+const roteirosDosMeusGrupos = async (userId) => {
+  const grupos = await Grupo.findAll({
+    attributes: ['roteiro_id'],
+    include: [{ model: GrupoMembro, as: 'membros', attributes: [], where: { usuario_id: userId } }]
+  });
+  return grupos.map((g) => g.roteiro_id);
+};
+
+module.exports = { exigirAcessoAoRoteiro, exigirAcessoAoGrupo, exigirAdminDoGrupo, ehIntegrante, roteirosDosMeusGrupos };
