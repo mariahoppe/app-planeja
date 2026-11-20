@@ -9,17 +9,19 @@ import { colors, fonts } from '../config/theme';
 /**
  * Aviso curto do protótipo (ex.: "Atividade adicionada."), por cima de todas as telas.
  * Qualquer tela usa assim: const toast = useToast(); toast('Mensagem');
+ *
+ * Um Modal (como o PainelInferior) é desenhado por cima de tudo, inclusive do
+ * aviso do provider. Por isso o desenho fica no AvisoToast, que o painel também
+ * renderiza dentro dele: o aviso aparece por cima do painel, como no protótipo.
  */
 
 const DURACAO_MS = 2600;
 
 const ToastContext = createContext(null);
+const MensagemContext = createContext(null);
 
 export function ToastProvider({ children }) {
   const [mensagem, setMensagem] = useState(null);
-  // Logo acima de onde a barra de abas flutua, como o bottom:104 do protótipo
-  const margens = useSafeAreaInsets();
-  const bottom = espacoParaBarraAbas(margens) - 12;
 
   useEffect(() => {
     if (!mensagem) return undefined;
@@ -29,15 +31,27 @@ export function ToastProvider({ children }) {
 
   return (
     <ToastContext.Provider value={setMensagem}>
-      {children}
-      {mensagem ? (
-        <Subir key={mensagem} style={[styles.toast, { bottom }]} pointerEvents="none">
-          <Text style={styles.texto} accessibilityLiveRegion="polite">
-            {mensagem}
-          </Text>
-        </Subir>
-      ) : null}
+      <MensagemContext.Provider value={mensagem}>
+        {children}
+        <AvisoToast />
+      </MensagemContext.Provider>
     </ToastContext.Provider>
+  );
+}
+
+/** O aviso em si; desenha nada quando não há mensagem. */
+export function AvisoToast() {
+  const mensagem = useContext(MensagemContext);
+  // Logo acima de onde a barra de abas flutua, como o bottom:104 do protótipo
+  const margens = useSafeAreaInsets();
+  if (!mensagem) return null;
+
+  return (
+    <Subir key={mensagem} style={[styles.toast, { bottom: espacoParaBarraAbas(margens) - 12 }]} pointerEvents="none">
+      <Text style={styles.texto} accessibilityLiveRegion="polite">
+        {mensagem}
+      </Text>
+    </Subir>
   );
 }
 

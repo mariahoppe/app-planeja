@@ -15,6 +15,8 @@ export const colors = {
   branco: '#FFFFFF',
   erroFundo: '#FDF7F4', // fundo de campo com erro de validação
   linhaTocada: '#F4F1EA', // fundo da linha de lista enquanto está sendo tocada
+  cardTocado: '#FDFCF9', // fundo do card enquanto está sendo tocado
+  sombraFundo: 'rgba(26,26,26,0.4)', // véu escuro atrás de painéis e da foto ampliada
   ok: '#3C5A20', // item concluído (ex.: check da atividade feita)
   okSuave: '#DFE8D6', // fundo do que a pessoa tem a receber (acerto de contas)
   aviso: '#8A6B1F', // texto de alerta brando (ex.: etiqueta "poucas avaliações")

@@ -31,7 +31,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 7,
   },
+  // O .card.tap:active do protótipo: o fundo esquenta e o card encolhe de leve
   pressionado: {
-    opacity: 0.85,
+    backgroundColor: colors.cardTocado,
+    transform: [{ scale: 0.995 }],
   },
 });

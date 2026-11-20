@@ -6,10 +6,12 @@ import { Link } from '../../../components/atoms/Link';
 import { FormField } from '../../../components/molecules/FormField';
 import { AuthTemplate } from '../../../components/templates/AuthTemplate';
 import { useAuth } from '../../../contexts/AuthContext';
+import { useToast } from '../../../contexts/ToastContext';
 import { emailValido } from '../validacao';
 
 export function CadastroScreen({ navigation }) {
   const { cadastrar } = useAuth();
+  const toast = useToast();
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -36,6 +38,7 @@ export function CadastroScreen({ navigation }) {
     setCarregando(true);
     try {
       await cadastrar(nome.trim(), email.trim(), senha);
+      toast('Conta criada. Bem-vinda ao Planeja.');
     } catch (erro) {
       Alert.alert('Não foi possível criar a conta', erro.message);
       setCarregando(false);
@@ -49,7 +52,7 @@ export function CadastroScreen({ navigation }) {
         erro={erros.nome}
         value={nome}
         onChangeText={setNome}
-        placeholder="Usuário"
+        placeholder="Maria Hoppe"
         maxLength={80}
         autoCapitalize="words"
         autoComplete="name"
@@ -60,7 +63,7 @@ export function CadastroScreen({ navigation }) {
         erro={erros.email}
         value={email}
         onChangeText={setEmail}
-        placeholder="usuario@gmail.com"
+        placeholder="voce@email.com"
         maxLength={120}
         keyboardType="email-address"
         autoCapitalize="none"
