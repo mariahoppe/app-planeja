@@ -1,5 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fonts } from '../../config/theme';
@@ -15,10 +16,21 @@ const DISTANCIA_DO_FIM = 300;
  * direita: elemento à direita do título (ex.: um Button pequeno "Editar").
  * aoVoltar: quando informado, mostra "‹ Voltar" e chama a função ao tocar.
  * aoChegarNoFim: chamada quando a rolagem chega perto do fim (listas paginadas, RNF-04).
+ * aoAtualizar: quando informada, liga o "puxar para atualizar"; pode devolver uma promessa.
  * Precisa de um SafeAreaProvider na raiz do app (App.js).
  */
-export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChegarNoFim, children }) {
+export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChegarNoFim, aoAtualizar, children }) {
   const margens = useSafeAreaInsets();
+  const [atualizando, setAtualizando] = useState(false);
+
+  async function puxarParaAtualizar() {
+    setAtualizando(true);
+    try {
+      await aoAtualizar();
+    } finally {
+      setAtualizando(false);
+    }
+  }
   // Nas telas das abas, a barra flutua por cima: o fim do conteúdo precisa ficar acima dela.
   const naAba = useNavigation().getState()?.type === 'tab';
   const espacoEmbaixo = naAba ? espacoParaBarraAbas(margens) : margens.bottom + 24;
@@ -52,6 +64,16 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
         keyboardShouldPersistTaps="handled"
         onScroll={aoChegarNoFim ? aoRolar : undefined}
         scrollEventThrottle={aoChegarNoFim ? 200 : undefined}
+        refreshControl={
+          aoAtualizar ? (
+            <RefreshControl
+              refreshing={atualizando}
+              onRefresh={puxarParaAtualizar}
+              tintColor={colors.acento}
+              colors={[colors.acento]}
+            />
+          ) : undefined
+        }
       >
         {children}
       </ScrollView>
