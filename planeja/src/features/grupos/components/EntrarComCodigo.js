@@ -43,8 +43,8 @@ export function EntrarComCodigo({ onEntrou }) {
   return (
     <View style={styles.caixa}>
       <FormField
-        label="Entrar com código"
-        placeholder="ABC123"
+        label="Entrar em um grupo"
+        placeholder="Código de convite"
         value={codigo}
         onChangeText={mudar}
         autoCapitalize="characters"
@@ -55,7 +55,7 @@ export function EntrarComCodigo({ onEntrou }) {
         erro={erro}
         dica={erro ? null : 'Peça o código de convite para alguém do grupo'}
       />
-      <Button titulo="Entrar no grupo" bloco carregando={entrando} onPress={entrar} />
+      <Button titulo="Entrar" bloco carregando={entrando} onPress={entrar} />
     </View>
   );
 }

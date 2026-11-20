@@ -50,8 +50,8 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
   if (despesas.length === 0) {
     return (
       <EmptyState
-        titulo="Nenhuma despesa ainda"
-        mensagem="Registre o que cada um pagou na viagem; o app divide entre os integrantes e mostra quem deve para quem."
+        titulo="Sem despesas"
+        mensagem="Registre o primeiro gasto da viagem."
         acao={<Button titulo="+ Nova despesa" variante="primario" onPress={nova} />}
       />
     );
@@ -66,9 +66,11 @@ export function AbaDespesas({ grupo, usuarioId, navigation }) {
         <Button titulo="+ Nova despesa" variante="primario" pequeno onPress={nova} />
       </View>
 
-      {despesas.map((d) => (
-        <DespesaItem key={d.id} despesa={d} usuarioId={usuarioId} onPress={() => abrir(d)} />
-      ))}
+      <View>
+        {despesas.map((d) => (
+          <DespesaItem key={d.id} despesa={d} usuarioId={usuarioId} onPress={() => abrir(d)} />
+        ))}
+      </View>
     </View>
   );
 }

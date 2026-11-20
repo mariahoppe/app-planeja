@@ -1,48 +1,63 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Card } from '../../../components/atoms/Card';
+import { Avatar } from '../../../components/atoms/Avatar';
 import { colors, fonts } from '../../../config/theme';
 import { dataBR } from '../../atividades/datas';
 import { rotuloCategoria } from '../despesas';
 import { moeda } from '../formatos';
 
+const primeiroNome = (nome) => (nome ? nome.split(' ')[0] : 'ex-integrante');
+
 /**
- * Uma despesa na aba Despesas: o que foi, quanto, quando e quem pagou.
+ * Uma despesa na aba Despesas, como a linha do protótipo: rosto de quem pagou,
+ * "12/04 · pagou Maria · divisão igual" e, à direita, o valor e a categoria.
  * Tocar abre a edição.
  */
 export function DespesaItem({ despesa, usuarioId, onPress }) {
-  const pagador = despesa.pagador_id === usuarioId ? 'você' : despesa.pagador?.nome ?? 'ex-integrante';
-  const divisao = despesa.modo_divisao === 'personalizada' ? ' · personalizada' : '';
+  const souEu = despesa.pagador_id === usuarioId;
+  const pagador = souEu ? 'você' : primeiroNome(despesa.pagador?.nome);
+  const dia = dataBR(despesa.data).slice(0, 5); // "12/04"
 
   return (
-    <Card onPress={onPress}>
-      <View style={styles.linha}>
-        <Text style={styles.descricao} numberOfLines={2}>
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${despesa.descricao}, ${moeda(despesa.valor)}, pagou ${pagador}. Editar`}
+      style={({ pressed }) => [styles.linha, pressed && styles.tocada]}
+    >
+      <Avatar nome={despesa.pagador?.nome} fotoUri={despesa.pagador?.foto_url} tamanho={28} />
+      <View style={styles.textos}>
+        <Text style={styles.descricao} numberOfLines={1}>
           {despesa.descricao}
         </Text>
-        <Text style={styles.valor}>{moeda(despesa.valor)}</Text>
+        <Text style={styles.sub} numberOfLines={1}>
+          {dia} · pagou <Text style={souEu ? styles.voce : null}>{pagador}</Text> · divisão {despesa.modo_divisao}
+        </Text>
       </View>
-      <Text style={styles.categoria}>{rotuloCategoria(despesa.categoria)}</Text>
-      <Text style={styles.sub}>
-        {dataBR(despesa.data)} · pago por{' '}
-        <Text style={despesa.pagador_id === usuarioId ? styles.voce : null}>{pagador}</Text>
-        {divisao}
-      </Text>
-    </Card>
+      <View style={styles.direita}>
+        <Text style={styles.valor}>{moeda(despesa.valor)}</Text>
+        <Text style={styles.sub}>{rotuloCategoria(despesa.categoria).toLowerCase()}</Text>
+      </View>
+    </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  linha: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 },
-  descricao: { flex: 1, fontFamily: fonts.corpoSemi, fontSize: 15, color: colors.tinta },
-  valor: { fontFamily: fonts.monoMedio, fontSize: 15, color: colors.tinta },
-  categoria: {
-    fontFamily: fonts.corpoForte,
-    fontSize: 9.5,
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    color: colors.acento,
+  linha: {
+    minHeight: 52,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.linhaSuave,
   },
-  sub: { fontFamily: fonts.corpo, fontSize: 12.5, color: colors.suave },
+  tocada: { backgroundColor: colors.linhaTocada },
+  textos: { flex: 1, gap: 2 },
+  descricao: { fontFamily: fonts.corpoSemi, fontSize: 14, color: colors.tinta },
+  sub: { fontFamily: fonts.corpo, fontSize: 11, color: colors.suave },
   voce: { fontFamily: fonts.corpoForte, color: colors.tinta },
+  direita: { alignItems: 'flex-end', gap: 2 },
+  valor: { fontFamily: fonts.monoMedio, fontSize: 12.5, color: colors.tinta },
 });

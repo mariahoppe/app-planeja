@@ -4,7 +4,7 @@ const isAdmin = (req) => req.user.perfil === 'admin';
 
 const listarMeus = async (req, res, next) => {
   try {
-    const data = await grupoService.listarMeus(req.user.id);
+    const data = await grupoService.listarMeus(req.user.id, req.query);
     res.json({ data });
   } catch (err) { next(err); }
 };

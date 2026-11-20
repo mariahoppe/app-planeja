@@ -2,6 +2,7 @@ const { Grupo, GrupoMembro, Usuario, Roteiro, Destino, Despesa, DespesaRateio, s
 const { AppError } = require('../utils/errorHandler');
 const { exigirAcessoAoGrupo, exigirAdminDoGrupo } = require('./permissoes');
 const { calcularContas } = require('./rateio');
+const { paginacao } = require('../utils/paginacao');
 
 const ALFABETO = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
@@ -38,7 +39,8 @@ const gerarCodigo = async (nome, transaction) => {
   throw new AppError('Não foi possível gerar um código de convite. Tente de novo.', 500);
 };
 
-const listarMeus = async (userId) => {
+// Paginada com ?pagina=&limite= (RNF-04); sem limite, vem inteira como antes
+const listarMeus = async (userId, query = {}) => {
   const participacoes = await GrupoMembro.findAll({
     where: { usuario_id: userId },
     attributes: ['grupo_id']
@@ -48,7 +50,9 @@ const listarMeus = async (userId) => {
   const grupos = await Grupo.findAll({
     where: { id: ids },
     include: [INTEGRANTES, VIAGEM, { model: Despesa, as: 'despesas', attributes: ['id', 'valor'] }],
-    order: [['created_at', 'DESC']]
+    // O id desempata grupos criados no mesmo instante, para as páginas não repetirem nem pularem itens
+    order: [['created_at', 'DESC'], ['id', 'DESC']],
+    ...paginacao(query)
   });
 
   return grupos.map((g) => {

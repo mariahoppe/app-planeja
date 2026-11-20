@@ -66,7 +66,7 @@ export function GrupoFormScreen({ route, navigation }) {
         navigation.goBack(); // o detalhe recarrega sozinho ao voltar
       } else {
         const novo = await grupoService.criar({ nome: nome.trim(), roteiro_id: roteiroId });
-        toast('Grupo criado. Compartilhe o código de convite.');
+        toast(`Grupo criado. Código de convite: ${novo.codigo_convite}`);
         // Troca o formulário pelo grupo novo: o "Voltar" de lá leva direto à lista.
         navigation.replace('GrupoDetalhe', { id: novo.id });
       }
@@ -84,13 +84,13 @@ export function GrupoFormScreen({ route, navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={editando ? 'Editar grupo' : 'Viagens em grupo'}
+      sobretitulo={editando ? 'Editar grupo' : 'Colaborativo'}
       titulo={editando ? grupo.nome : 'Novo grupo'}
       aoVoltar={() => navigation.goBack()}
     >
       <FormField
         label="Nome do grupo"
-        placeholder="Família em Lisboa"
+        placeholder="Grupo 1"
         value={nome}
         onChangeText={setNome}
         maxLength={MAX_NOME_GRUPO}
@@ -99,9 +99,9 @@ export function GrupoFormScreen({ route, navigation }) {
 
       {editando ? null : (
         <FormField
-          label="Viagem"
+          label="Viagem vinculada"
           erro={erros.roteiro}
-          dica="Todos do grupo vão poder ver e editar o roteiro e as atividades dessa viagem"
+          dica="Todos os integrantes poderão editar esse roteiro"
         >
           {carregando || erroCarga ? (
             <EstadoCarga carregando={carregando} erro={erroCarga} onTentarDeNovo={carregarViagens} />

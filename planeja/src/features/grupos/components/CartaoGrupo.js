@@ -3,18 +3,20 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Card } from '../../../components/atoms/Card';
 import { colors, fonts } from '../../../config/theme';
-import { mesAno, moeda, nomeViagem, rotuloIntegrantes } from '../formatos';
+import { moeda, nomeViagem, rotuloIntegrantes } from '../formatos';
 
 const MAX_ROSTOS = 3;
 const TAMANHO_ROSTO = 30;
 
+const rotuloDespesas = (total) => `${total} ${total === 1 ? 'despesa' : 'despesas'}`;
+
 /**
- * Um grupo na lista "Meus grupos", como no protótipo:
- * "Família · Lisboa", "3 integrantes · set 2026", rostos dos integrantes e o total gasto.
+ * Um grupo na lista "Meus grupos", como no protótipo: "Família · Lisboa",
+ * a etiqueta admin/integrante, "3 integrantes · 4 despesas", rostos dos
+ * integrantes e o total gasto.
  */
 export function CartaoGrupo({ grupo, onPress }) {
   const viagem = nomeViagem(grupo.roteiro);
-  const mes = mesAno(grupo.roteiro?.inicio);
   const membros = grupo.membros || [];
   const visiveis = membros.slice(0, MAX_ROSTOS);
   const restantes = membros.length - visiveis.length;
@@ -26,12 +28,13 @@ export function CartaoGrupo({ grupo, onPress }) {
           {grupo.nome}
           {viagem ? <Text style={styles.viagem}>{` · ${viagem}`}</Text> : null}
         </Text>
-        {grupo.sou_admin ? <Text style={styles.selo}>Criador</Text> : null}
+        <Text style={[styles.selo, grupo.sou_admin && styles.seloAdmin]}>
+          {grupo.sou_admin ? 'admin' : 'integrante'}
+        </Text>
       </View>
 
       <Text style={styles.meta}>
-        {rotuloIntegrantes(grupo.total_integrantes)}
-        {mes ? ` · ${mes}` : ''}
+        {rotuloIntegrantes(grupo.total_integrantes)} · {rotuloDespesas(grupo.total_despesas ?? 0)}
       </Text>
 
       <View style={styles.rodape}>
@@ -58,14 +61,21 @@ const styles = StyleSheet.create({
   linha: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
   nome: { flex: 1, fontFamily: fonts.titulo, fontSize: 17, color: colors.tinta },
   viagem: { color: colors.suave },
+  // A etiqueta .tag do protótipo: neutra para integrante, em acento para admin
   selo: {
     fontFamily: fonts.corpoForte,
-    fontSize: 9.5,
-    letterSpacing: 1.2,
+    fontSize: 9,
+    letterSpacing: 0.9,
     textTransform: 'uppercase',
-    color: colors.acento,
-    marginTop: 4,
+    color: colors.suave,
+    backgroundColor: colors.fundoSeletor,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 20,
+    overflow: 'hidden',
+    marginTop: 2,
   },
+  seloAdmin: { color: colors.acento, backgroundColor: colors.acentoSuave },
   meta: {
     fontFamily: fonts.corpoSemi,
     fontSize: 11,
