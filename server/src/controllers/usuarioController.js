@@ -7,8 +7,12 @@ const listar = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+// Os dados de um usuário (inclusive o e-mail) só para ele mesmo ou para um admin
 const buscarPorId = async (req, res, next) => {
   try {
+    if (req.user.perfil !== 'admin' && Number(req.params.id) !== req.user.id) {
+      return res.status(403).json({ error: { message: 'Sem permissão para ver este usuário' } });
+    }
     const data = await usuarioService.buscarPorId(req.params.id);
     res.json({ data });
   } catch (err) { next(err); }
