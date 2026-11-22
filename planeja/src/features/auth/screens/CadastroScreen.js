@@ -38,7 +38,7 @@ export function CadastroScreen({ navigation }) {
     setCarregando(true);
     try {
       await cadastrar(nome.trim(), email.trim(), senha);
-      toast('Conta criada. Bem-vinda ao Planeja.');
+      toast('Conta criada. Bem-vindo(a) ao Planeja.');
     } catch (erro) {
       Alert.alert('Não foi possível criar a conta', erro.message);
       setCarregando(false);
@@ -52,7 +52,7 @@ export function CadastroScreen({ navigation }) {
         erro={erros.nome}
         value={nome}
         onChangeText={setNome}
-        placeholder="Maria Hoppe"
+        placeholder="Usuário"
         maxLength={80}
         autoCapitalize="words"
         autoComplete="name"
