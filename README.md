@@ -10,6 +10,18 @@ Disciplina de **Desenvolvimento de Dispositivos Móveis** — 6º semestre de Si
 
 ---
 
+## Para avaliar
+
+| | |
+| --- | --- |
+| 📱 **App (Android)** | [Baixar o APK](https://expo.dev/artifacts/eas/5ThHkTX-l0Q09bVpoEeMh2CVFzfJKfrsUycs02iWWb8.apk) — instalar no celular (permitir "fontes desconhecidas") |
+| 🌐 **API publicada** | [`planeja-api-q8te.onrender.com`](https://planeja-api-q8te.onrender.com/health) — plano gratuito do Render: a primeira requisição depois de um tempo parada pode levar ~50 s |
+| 👤 **Contas de teste** | `maria@planeja.app` · `mario@planeja.app` · `ana@planeja.app` — senha `planeja123` |
+
+No iPhone, o app roda pelo **Expo Go** a partir do código (ver [como rodar](./docs/COMO-RODAR.md)).
+
+---
+
 ## O que tem aqui
 
 | Pasta | O que é |
@@ -53,5 +65,5 @@ Leia o QR Code com o **Expo Go** no celular
 ---
 
 <div align="center">
-<sub>Detalhes do nosso app em <a href="./planeja/README.md"><code>planeja/README.md</code></a> · Entrega: 17 de dezembro de 2026</sub>
+<sub>Detalhes do nosso app em <a href="./planeja/README.md"><code>planeja/README.md</code></a> · Versão 1.0.0</sub>
 </div>
