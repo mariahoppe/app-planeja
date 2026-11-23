@@ -9,7 +9,6 @@ const CHAVE = 'planeja_preferencias';
 
 export const PREFERENCIAS_PADRAO = {
   notificacoes: true,
-  modoEscuro: false,
 };
 
 // O que estiver gravado por cima do padrão (preferência nova ganha valor padrão).

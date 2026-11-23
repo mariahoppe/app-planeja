@@ -82,7 +82,7 @@ Se o terminal for Git Bash em vez de PowerShell:
 
 ## 5. O token da Expo (por que e como)
 
-O Expo Go do iPhone está logado na conta **mafeh_x0x0**. Assim, ele só abre projetos servidos por um terminal logado na mesma conta. O `npx expo login` pelo navegador não funcionou (o site já estava logado e não devolveu o login para o terminal), então usamos um **token**:
+O Expo Go do iPhone está logado numa conta Expo. Assim, ele só abre projetos servidos por um terminal logado na mesma conta. O `npx expo login` pelo navegador não funcionou (o site já estava logado e não devolveu o login para o terminal), então usamos um **token**:
 
 1. expo.dev → seu nome (canto inferior esquerdo) → **Account settings** → **Access tokens** → **Create token**.
 2. Copie e guarde no seu gerenciador de senhas. Ele só aparece uma vez. Não cole em chat nem em arquivo do projeto.
