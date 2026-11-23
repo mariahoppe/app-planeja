@@ -14,13 +14,14 @@ import { CartaoViagem } from '../components/CartaoViagem';
 import { Indicadores } from '../components/Indicadores';
 import { OutrosRoteiros } from '../components/OutrosRoteiros';
 import { ProximasAtividades } from '../components/ProximasAtividades';
+import { hojePorExtenso } from '../formatos';
 import * as dashboardService from '../services/dashboardService';
 
 const MARGEM = 18;
 
 /**
  * Painel de quem está logado (GET /dashboard), com o cabeçalho do protótipo
- * ("Olá, Maria" / Início): próxima viagem em destaque, contadores,
+ * (a data de hoje e "Olá, Maria" com o nome em destaque): próxima viagem, contadores,
  * atalhos, atividades pendentes e os demais roteiros.
  * O Perfil é a última aba da barra (AbasNavigator).
  */
@@ -54,8 +55,13 @@ export function InicioScreen({ navigation }) {
 
   return (
     <ScreenTemplate
-      sobretitulo={`Olá, ${primeiroNome}`}
-      titulo="Início"
+      sobretitulo={hojePorExtenso()}
+      titulo={
+        <>
+          <Text style={styles.ola}>Olá, </Text>
+          {primeiroNome}
+        </>
+      }
       aoAtualizar={carregar}
     >
       {erro ? (
@@ -201,6 +207,8 @@ function Esqueleto() {
 }
 
 const styles = StyleSheet.create({
+  // "Olá," mais discreto, para o nome se destacar no título
+  ola: { fontFamily: fonts.titulo, color: colors.suave },
   erro: { gap: 10 },
   secao: { gap: 10 },
   secaoTopo: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 8 },
