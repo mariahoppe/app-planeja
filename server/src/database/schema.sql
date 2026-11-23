@@ -173,6 +173,11 @@ CREATE TABLE dicas (
   o_que_fazer  TEXT,
   onde_visitar TEXT,
   onde_ficar   TEXT,
+  -- Um local por bloco (ex.: "Café de Flore"): o app abre o Google Maps com ele
+  local_onde_comer   VARCHAR(120),
+  local_o_que_fazer  VARCHAR(120),
+  local_onde_visitar VARCHAR(120),
+  local_onde_ficar   VARCHAR(120),
   created_at   TIMESTAMPTZ    NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ    NOT NULL DEFAULT now(),
 

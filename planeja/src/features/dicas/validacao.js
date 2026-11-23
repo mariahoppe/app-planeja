@@ -1,12 +1,40 @@
 // Regras do formulário de dica, espelhando o dicaValidator da API.
 
-// Os quatro blocos de conteúdo, na ordem do protótipo. "chave" é o nome do campo na API.
+// Os quatro blocos de conteúdo, na ordem do protótipo. "chave" é o nome do campo na API;
+// "chaveLocal", o do local daquele bloco, que abre no Google Maps (ex.: um restaurante).
 export const BLOCOS = [
-  { chave: 'onde_comer', rotulo: 'Onde comer', placeholder: 'Restaurantes, mercados, o que vale o preço' },
-  { chave: 'o_que_fazer', rotulo: 'O que fazer', placeholder: 'Passeios, caminhadas, feiras' },
-  { chave: 'onde_visitar', rotulo: 'Onde visitar', placeholder: 'Museus, pontos turísticos e o melhor horário' },
-  { chave: 'onde_ficar', rotulo: 'Onde ficar', placeholder: 'Bairros e hospedagem' },
+  {
+    chave: 'onde_comer',
+    chaveLocal: 'local_onde_comer',
+    rotulo: 'Onde comer',
+    placeholder: 'Restaurantes, mercados, o que vale o preço',
+    exemploLocal: 'Café de Flore',
+  },
+  {
+    chave: 'o_que_fazer',
+    chaveLocal: 'local_o_que_fazer',
+    rotulo: 'O que fazer',
+    placeholder: 'Passeios, caminhadas, feiras',
+    exemploLocal: 'Cruzeiro no Sena',
+  },
+  {
+    chave: 'onde_visitar',
+    chaveLocal: 'local_onde_visitar',
+    rotulo: 'Onde visitar',
+    placeholder: 'Museus, pontos turísticos e o melhor horário',
+    exemploLocal: 'Museu do Louvre',
+  },
+  {
+    chave: 'onde_ficar',
+    chaveLocal: 'local_onde_ficar',
+    rotulo: 'Onde ficar',
+    placeholder: 'Bairros e hospedagem',
+    exemploLocal: 'Le Marais',
+  },
 ];
+
+// Mesmo limite da coluna local_* da API
+export const MAX_LOCAL = 120;
 
 // O banco aceita até 4 fotos em cada bloco (CHECK + UNIQUE em dica_fotos).
 export const MAX_FOTOS_POR_BLOCO = 4;

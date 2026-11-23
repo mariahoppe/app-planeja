@@ -10,7 +10,7 @@ import { useToast } from '../../../contexts/ToastContext';
 import { capturarFoto, comprimirFotoDica, escolherImagem } from '../../../services/nativos';
 import { ESCOPOS } from '../../destinos/validacao';
 import { ordenarFotos } from '../formatos';
-import { BLOCOS, MAX_FOTOS_POR_BLOCO, validarDica } from '../validacao';
+import { BLOCOS, MAX_FOTOS_POR_BLOCO, MAX_LOCAL, validarDica } from '../validacao';
 import { Fotos } from './Fotos';
 
 /**
@@ -29,6 +29,10 @@ export function DicaForm({ dica, cidadeInicial = '', onSubmit, carregando = fals
   // Um texto por bloco: { onde_comer: '...', o_que_fazer: '...', ... }
   const [textos, setTextos] = useState(() =>
     Object.fromEntries(BLOCOS.map((b) => [b.chave, dica?.[b.chave] ?? '']))
+  );
+  // O local de cada bloco (ex.: um restaurante), que o detalhe abre no Google Maps
+  const [locais, setLocais] = useState(() =>
+    Object.fromEntries(BLOCOS.map((b) => [b.chaveLocal, dica?.[b.chaveLocal] ?? '']))
   );
   // As fotos já salvas têm id; as escolhidas agora têm só o arquivo do aparelho.
   const [fotos, setFotos] = useState(() =>
@@ -87,6 +91,7 @@ export function DicaForm({ dica, cidadeInicial = '', onSubmit, carregando = fals
     const dados = { cidade: cidade.trim(), pais: pais.trim(), escopo };
     BLOCOS.forEach((b) => {
       dados[b.chave] = textos[b.chave].trim() || null;
+      dados[b.chaveLocal] = locais[b.chaveLocal].trim() || null;
     });
 
     onSubmit({ dados, novas: fotos.filter((f) => !f.id), removidas });
@@ -134,6 +139,14 @@ export function DicaForm({ dica, cidadeInicial = '', onSubmit, carregando = fals
             multiline
             accessibilityLabel={b.rotulo}
             style={styles.area}
+          />
+          <Input
+            value={locais[b.chaveLocal]}
+            onChangeText={(texto) => setLocais((atuais) => ({ ...atuais, [b.chaveLocal]: texto }))}
+            placeholder={`📍 Local no mapa (opcional) · ex.: ${b.exemploLocal}`}
+            maxLength={MAX_LOCAL}
+            returnKeyType="done"
+            accessibilityLabel={`Local no mapa de ${b.rotulo} (opcional)`}
           />
           <Fotos
             fotos={fotosDoBloco(b.chave)}

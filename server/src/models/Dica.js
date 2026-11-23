@@ -40,7 +40,12 @@ module.exports = (sequelize) => {
     onde_comer: { type: DataTypes.TEXT, allowNull: true },
     o_que_fazer: { type: DataTypes.TEXT, allowNull: true },
     onde_visitar: { type: DataTypes.TEXT, allowNull: true },
-    onde_ficar: { type: DataTypes.TEXT, allowNull: true }
+    onde_ficar: { type: DataTypes.TEXT, allowNull: true },
+    // Um local por bloco (ex.: "Café de Flore"): o app abre o Google Maps com ele
+    local_onde_comer: { type: DataTypes.STRING(120), allowNull: true },
+    local_o_que_fazer: { type: DataTypes.STRING(120), allowNull: true },
+    local_onde_visitar: { type: DataTypes.STRING(120), allowNull: true },
+    local_onde_ficar: { type: DataTypes.STRING(120), allowNull: true }
   }, {
     tableName: 'dicas',
     validate: {
