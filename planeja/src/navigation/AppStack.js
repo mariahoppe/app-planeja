@@ -8,7 +8,6 @@ import { DicaFormScreen } from '../features/dicas/screens/DicaFormScreen';
 import { GrupoDetalheScreen } from '../features/grupos/screens/GrupoDetalheScreen';
 import { GrupoFormScreen } from '../features/grupos/screens/GrupoFormScreen';
 import { ConfiguracoesScreen } from '../features/perfil/screens/ConfiguracoesScreen';
-import { PerfilScreen } from '../features/perfil/screens/PerfilScreen';
 import { AvaliacaoFormScreen } from '../features/ranking/screens/AvaliacaoFormScreen';
 import { MinhasAvaliacoesScreen } from '../features/ranking/screens/MinhasAvaliacoesScreen';
 import { RoteiroDetalheScreen } from '../features/roteiros/screens/RoteiroDetalheScreen';
@@ -18,14 +17,13 @@ import { AbasNavigator } from './AbasNavigator';
 const Stack = createNativeStackNavigator();
 
 /**
- * Telas de quem está logado. As abas são a base da pilha; Perfil e
- * Configurações abrem por cima delas (com "‹ Voltar"), sem ocupar uma aba.
+ * Telas de quem está logado. As abas são a base da pilha (o Perfil é uma delas);
+ * Configurações e as telas de detalhe e formulário abrem por cima (com "‹ Voltar").
  */
 export function AppStack() {
   return (
     <Stack.Navigator initialRouteName="Abas" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Abas" component={AbasNavigator} />
-      <Stack.Screen name="Perfil" component={PerfilScreen} />
       <Stack.Screen name="Configuracoes" component={ConfiguracoesScreen} />
       <Stack.Screen name="RoteiroDetalhe" component={RoteiroDetalheScreen} />
       <Stack.Screen name="RoteiroForm" component={RoteiroFormScreen} />

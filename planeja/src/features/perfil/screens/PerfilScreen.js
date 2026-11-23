@@ -99,7 +99,6 @@ export function PerfilScreen({ navigation }) {
     <ScreenTemplate
       sobretitulo="Conta"
       titulo="Meu perfil"
-      aoVoltar={() => navigation.goBack()}
       direita={<Button titulo="Editar" pequeno onPress={() => setPainel('editar')} />}
     >
       <ErrorMessage mensagem={erro} />

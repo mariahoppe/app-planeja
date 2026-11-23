@@ -2,7 +2,6 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 
-import { Avatar } from '../../../components/atoms/Avatar';
 import { Button } from '../../../components/atoms/Button';
 import { Card } from '../../../components/atoms/Card';
 import { Surgir } from '../../../components/atoms/Surgir';
@@ -21,9 +20,9 @@ const MARGEM = 18;
 
 /**
  * Painel de quem está logado (GET /dashboard), com o cabeçalho do protótipo
- * ("Olá, Maria" / Início / avatar): próxima viagem em destaque, contadores,
+ * ("Olá, Maria" / Início): próxima viagem em destaque, contadores,
  * atalhos, atividades pendentes e os demais roteiros.
- * O avatar abre o Perfil, que fica na pilha acima das abas (AppStack).
+ * O Perfil é a última aba da barra (AbasNavigator).
  */
 export function InicioScreen({ navigation }) {
   const { usuario } = useAuth();
@@ -57,9 +56,6 @@ export function InicioScreen({ navigation }) {
     <ScreenTemplate
       sobretitulo={`Olá, ${primeiroNome}`}
       titulo="Início"
-      direita={
-        <Avatar nome={usuario.nome} fotoUri={usuario.foto_url} tamanho={28} onPress={() => navigation.navigate('Perfil')} />
-      }
       aoAtualizar={carregar}
     >
       {erro ? (
