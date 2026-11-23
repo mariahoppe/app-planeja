@@ -15,22 +15,20 @@ Disciplina de **Desenvolvimento de Dispositivos Móveis** — 6º semestre de Si
 | Pasta | O que é |
 | --- | --- |
 | [`planeja/`](./planeja/) | **Nosso app.** O Planeja Mobile, em React Native + Expo. |
-| [`server/`](./server/) | **API do Planeja**, em Node + Express + Sequelize. |
-| [`app-moretto/`](./app-moretto/) | **App do professor**, apresentado em aula. Referência para componentes, telas, navegação e chamadas à API. Só consulta — não editamos. |
-| [`docs/`](./docs/) | Documento de escopo do Planeja. |
+| [`server/`](./server/) | **API do Planeja**, em Node + Express + Sequelize, com PostgreSQL no Supabase. |
+| [`docs/`](./docs/) | Escopo e plano do Planeja, e o guia [como rodar](./docs/COMO-RODAR.md). |
 
 ```
 app-planeja/
 ├─ README.md            ← você está aqui
-├─ docs/                 documento de escopo
+├─ docs/                 escopo, plano e guia de como rodar
 ├─ server/               API  (ver server/README.md)
-├─ app-moretto/          app do professor (referência)
 └─ planeja/             ← NOSSO app  (cd planeja && pnpm start)
    ├─ App.js
    ├─ package.json
    └─ src/
-      ├─ api/  config/  navigation/  contexts/  components/  hooks/  utils/
-      └─ features/       destinos · roteiros · atividades · dicas · ranking · grupos · auth
+      ├─ api/  config/  navigation/  contexts/  components/  hooks/  services/
+      └─ features/       inicio · destinos · roteiros · atividades · dicas · ranking · grupos · auth · perfil
 ```
 
 ## Como rodar
@@ -48,7 +46,7 @@ Leia o QR Code com o **Expo Go** no celular
 ([Android](https://play.google.com/store/apps/details?id=host.exp.exponent) ·
 [iOS](https://apps.apple.com/app/expo-go/id982107779)).
 
-> **Atenção à versão do Expo.** O Planeja usa **SDK 57**, que é o que o Expo Go
+> **Atenção à versão do Expo.** O Planeja usa **SDK 58**, que é o que o Expo Go
 > publicado nas lojas suporta hoje. Subir de SDK sem que o Expo Go acompanhe faz o QR
 > Code falhar com *"Project is incompatible with this version of Expo Go"*.
 

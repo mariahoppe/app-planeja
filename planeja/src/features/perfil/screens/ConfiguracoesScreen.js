@@ -63,11 +63,6 @@ export function ConfiguracoesScreen({ navigation }) {
     await salvarPreferencias({ notificacoes: ligar });
   }
 
-  async function mudarModoEscuro(ligar) {
-    setPreferencias((atuais) => ({ ...atuais, modoEscuro: ligar }));
-    await salvarPreferencias({ modoEscuro: ligar });
-  }
-
   async function testarAviso() {
     setErro(null);
     setEnviando(true);
@@ -91,12 +86,6 @@ export function ConfiguracoesScreen({ navigation }) {
       titulo: 'Notificações',
       descricao: 'Avisos locais do Planeja, gerados pelo próprio aparelho.',
       aoMudar: mudarNotificacoes,
-    },
-    {
-      id: 'modoEscuro',
-      titulo: 'Modo escuro',
-      descricao: 'Preferência já é gravada; o tema escuro ainda não foi aplicado.',
-      aoMudar: mudarModoEscuro,
     },
   ];
 
