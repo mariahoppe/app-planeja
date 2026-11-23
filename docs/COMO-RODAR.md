@@ -88,6 +88,8 @@ O Expo Go do iPhone está logado numa conta Expo. Assim, ele só abre projetos s
 2. Copie e guarde no seu gerenciador de senhas. Ele só aparece uma vez. Não cole em chat nem em arquivo do projeto.
 3. Use no comando do passo 4.
 
+**O projeto pertence à conta Expo do Mário** (`"owner": "jeguelokinho"` no `planeja/app.json`, desde o `eas init`). Para o seu token abrir o projeto, a sua conta precisa ser **membro** dela: expo.dev → conta do Mário → **Members** → **Invite**. Sem isso, o Expo diz que o token é inválido mesmo com o token certo. Para testar se o token em si vale: `$env:EXPO_TOKEN="<token>"; npx expo whoami` (tem que responder o seu usuário).
+
 **Para não colar o token toda vez**, salve-o como variável do seu usuário do Windows (PowerShell, uma vez só):
 ```
 [Environment]::SetEnvironmentVariable("EXPO_TOKEN", "<seu token>", "User")
@@ -107,6 +109,7 @@ Alternativa sem token: sair da conta no Expo Go do iPhone (ícone de perfil → 
 | Sintoma | O que fazer |
 |---|---|
 | Terminal diz "signed in to Expo Go … but not signed in to Expo CLI" | Faltou o `EXPO_TOKEN` (passo 5) |
+| Expo diz que o token é inválido | Testar com `npx expo whoami`. Se o token responde, a sua conta não é membro do projeto do Mário (passo 5) |
 | QR code dá timeout no celular | Mesmo Wi-Fi? Conferir o IP (passo 3). Último recurso: `pnpm expo start -c --tunnel` |
 | App abre, mas login dá erro de conexão | API parada, IP errado no `planeja/.env` ou firewall bloqueando a porta 3000 |
 | "Muitas requisições, tente novamente mais tarde" | Reiniciar a API (Ctrl+C → `npm run dev`) zera a contagem |
