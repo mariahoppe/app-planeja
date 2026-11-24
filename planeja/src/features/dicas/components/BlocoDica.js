@@ -1,21 +1,26 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { colors, fonts } from '../../../config/theme';
+import { CartaoLocal } from './CartaoLocal';
 import { Fotos } from './Fotos';
 
 /**
- * Um dos quatro blocos da dica no detalhe (ex.: "Onde comer"), com as fotos dele.
- * Bloco sem texto não aparece, como no protótipo.
- * fotos: [{ chave, uri }], no formato da grade.
+ * Um dos quatro blocos da dica no detalhe (ex.: "Onde comer"), com as fotos dele
+ * e, se houver, o card do local, que abre no Google Maps.
+ * Bloco sem texto nem local não aparece, como no protótipo.
+ * fotos: [{ chave, uri }], no formato da grade. cidade e pais: da dica, para a busca no mapa.
  */
-export function BlocoDica({ rotulo, texto, fotos }) {
-  if (!texto?.trim()) return null;
+export function BlocoDica({ rotulo, texto, local, cidade, pais, fotos }) {
+  const temTexto = Boolean(texto?.trim());
+  const temLocal = Boolean(local?.trim());
+  if (!temTexto && !temLocal) return null;
 
   return (
     <View style={styles.bloco}>
       <Text style={styles.rotulo}>{rotulo}</Text>
-      <Text style={styles.texto}>{texto}</Text>
+      {temTexto ? <Text style={styles.texto}>{texto}</Text> : null}
       {fotos.length > 0 ? <Fotos fotos={fotos} /> : null}
+      {temLocal ? <CartaoLocal local={local.trim()} cidade={cidade} pais={pais} /> : null}
     </View>
   );
 }

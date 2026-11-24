@@ -108,6 +108,9 @@ export function DicaDetalheScreen({ route, navigation }) {
           key={b.chave}
           rotulo={b.rotulo}
           texto={dica[b.chave]}
+          local={dica[b.chaveLocal]}
+          cidade={dica.cidade}
+          pais={dica.pais}
           fotos={paraGrade(dica.fotos.filter((f) => f.bloco === b.chave))}
         />
       ))}

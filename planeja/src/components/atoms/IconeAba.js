@@ -17,6 +17,13 @@ const DESENHOS = {
       <Path d="M3 20v-1.5A4.5 4.5 0 0 1 7.5 14h2A4.5 4.5 0 0 1 14 18.5V20M15 14.3a3.6 3.6 0 0 1 6 2.7V20" />
     </>
   ),
+  // Uma pessoa só, no mesmo traço do ícone de Grupos
+  perfil: (
+    <>
+      <Circle cx={12} cy={8.5} r={3.5} />
+      <Path d="M5 20v-1a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v1" />
+    </>
+  ),
 };
 
 /**

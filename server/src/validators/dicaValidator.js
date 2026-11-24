@@ -18,7 +18,16 @@ const criar = Joi.object({
   onde_comer: Joi.string().allow('', null),
   o_que_fazer: Joi.string().allow('', null),
   onde_visitar: Joi.string().allow('', null),
-  onde_ficar: Joi.string().allow('', null)
+  onde_ficar: Joi.string().allow('', null),
+  // Local de cada bloco (opcional), para abrir no Google Maps
+  local_onde_comer: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' }),
+  local_o_que_fazer: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' }),
+  local_onde_visitar: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' }),
+  local_onde_ficar: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' })
 })
   .custom(exigirUmBloco)
   .messages({ 'dica.blocos': 'Preencha pelo menos um dos quatro blocos' });
@@ -30,7 +39,15 @@ const atualizar = Joi.object({
   onde_comer: Joi.string().allow('', null),
   o_que_fazer: Joi.string().allow('', null),
   onde_visitar: Joi.string().allow('', null),
-  onde_ficar: Joi.string().allow('', null)
+  onde_ficar: Joi.string().allow('', null),
+  local_onde_comer: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' }),
+  local_o_que_fazer: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' }),
+  local_onde_visitar: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' }),
+  local_onde_ficar: Joi.string().max(120).allow('', null)
+    .messages({ 'string.max': 'O local deve ter no máximo 120 caracteres' })
 }).min(1).messages({ 'object.min': 'Informe ao menos um campo para atualizar' });
 
 const adicionarFoto = Joi.object({
