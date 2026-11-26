@@ -8,15 +8,15 @@ import { colors, fonts, radius } from '../../config/theme';
  * as demais props (value, onChangeText, placeholder, secureTextEntry...) são repassadas.
  * erro: destaca o campo quando a validação falha.
  */
-export function Input({ erro = false, style, ...props }) {
+export function Input({ erro = false, style, onFocus, onBlur, ...props }) {
   const [focado, setFocado] = useState(false);
 
   return (
     <TextInput
       style={[styles.input, focado && styles.focado, erro && styles.comErro, style]}
       placeholderTextColor={colors.suave}
-      onFocus={() => setFocado(true)}
-      onBlur={() => setFocado(false)}
+      onFocus={(e) => { setFocado(true); onFocus?.(e); }}
+      onBlur={(e) => { setFocado(false); onBlur?.(e); }}
       {...props}
     />
   );

@@ -3,23 +3,24 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { Avatar } from '../../../components/atoms/Avatar';
 import { Button } from '../../../components/atoms/Button';
-import { Input } from '../../../components/atoms/Input';
+import { InputMoeda } from '../../../components/atoms/InputMoeda';
 import { DatePicker } from '../../../components/molecules/DatePicker';
 import { FormField } from '../../../components/molecules/FormField';
 import { SeletorSegmentado } from '../../../components/molecules/SeletorSegmentado';
 import { colors, fonts } from '../../../config/theme';
+import { paraCentavos } from '../../../utils/moeda';
 import {
   CATEGORIAS,
   dividirIgual,
   hojeISO,
-  lerValor,
   MAX_DESCRICAO,
   MODOS_DIVISAO,
   somaRateio,
-  textoValor,
   validarDespesa,
 } from '../despesas';
 import { moeda } from '../formatos';
+
+const reais = (centavos) => moeda(centavos / 100);
 
 /**
  * Campos e validação da despesa (RF-21 e RF-22). Quem fala com a API é a tela:
@@ -48,7 +49,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
     : membros;
 
   const [descricao, setDescricao] = useState(despesa?.descricao ?? '');
-  const [valor, setValor] = useState(editando ? textoValor(despesa.valor) : '');
+  const [totalCentavos, setTotalCentavos] = useState(editando ? paraCentavos(despesa.valor) : null);
   const [data, setData] = useState(despesa?.data ?? hojeISO());
   const [pagadorId, setPagadorId] = useState(despesa?.pagador_id ?? usuarioId);
   const [categoria, setCategoria] = useState(despesa?.categoria ?? 'alimentacao');
@@ -57,13 +58,11 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
     const inicial = {};
     pessoas.forEach(({ usuario_id: id }) => {
       const r = rateioGravado.find((x) => x.usuario_id === id);
-      inicial[id] = r ? textoValor(r.valor_devido) : '';
+      inicial[id] = r ? paraCentavos(r.valor_devido) : null;
     });
     return inicial;
   });
   const [erros, setErros] = useState({});
-
-  const total = lerValor(valor);
 
   // Na divisão igual, a API só redivide se o valor ou o modo mudarem; senão a divisão
   // gravada continua valendo, e é ela que o formulário mostra.
@@ -71,10 +70,10 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
     editando &&
     despesa.modo_divisao === 'igual' &&
     modo === 'igual' &&
-    Math.round(total * 100) === Math.round(Number(despesa.valor) * 100);
+    totalCentavos === paraCentavos(despesa.valor);
   const porPessoa = mantemDivisao
-    ? Object.fromEntries(rateioGravado.map((r) => [r.usuario_id, Number(r.valor_devido)]))
-    : dividirIgual(total, ids);
+    ? Object.fromEntries(rateioGravado.map((r) => [r.usuario_id, paraCentavos(r.valor_devido)]))
+    : dividirIgual(totalCentavos, ids);
   const naDivisaoIgual = mantemDivisao ? pessoas.filter((p) => p.usuario_id in porPessoa) : membros;
   const naLista = modo === 'igual' ? naDivisaoIgual : pessoas;
 
@@ -88,32 +87,32 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
   function mudarModo(novo) {
     setModo(novo);
     limparErro('rateio');
-    const vazio = Object.values(valores).every((t) => !String(t).trim());
-    if (novo === 'personalizada' && vazio && !Number.isNaN(total)) {
+    const vazio = Object.values(valores).every((c) => c == null);
+    if (novo === 'personalizada' && vazio && totalCentavos != null) {
       const preenchido = {};
-      pessoas.forEach(({ usuario_id: id }) => { preenchido[id] = textoValor(porPessoa[id] ?? 0); });
+      pessoas.forEach(({ usuario_id: id }) => { preenchido[id] = porPessoa[id] ?? 0; });
       setValores(preenchido);
     }
   }
 
   function salvar() {
-    const e = validarDespesa({ descricao, valor, data, pagadorId, modo, valores });
+    const e = validarDespesa({ descricao, totalCentavos, data, pagadorId, modo, valores });
     setErros(e);
     if (Object.keys(e).length > 0) return;
 
     const dados = {
       descricao: descricao.trim(),
-      valor: total,
+      valor: totalCentavos / 100,
       data,
       pagador_id: pagadorId,
       categoria,
       modo_divisao: modo,
     };
     if (modo === 'personalizada') {
-      dados.rateio = pessoas.map(({ usuario_id: id }) => {
-        const v = lerValor(valores[id]);
-        return { usuario_id: id, valor_devido: Number.isNaN(v) ? 0 : v };
-      });
+      dados.rateio = pessoas.map(({ usuario_id: id }) => ({
+        usuario_id: id,
+        valor_devido: (valores[id] ?? 0) / 100,
+      }));
     }
     onSubmit(dados);
   }
@@ -132,15 +131,14 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
       />
 
       <View style={styles.grid2}>
-        <FormField
-          label="Valor total"
-          placeholder="0,00"
-          value={valor}
-          onChangeText={(t) => { setValor(t); limparErro('valor'); }}
-          keyboardType="decimal-pad"
-          erro={erros.valor}
-          style={styles.coluna}
-        />
+        <FormField label="Valor total" erro={erros.valor} style={styles.coluna}>
+          <InputMoeda
+            centavos={totalCentavos}
+            onChange={(c) => { setTotalCentavos(c); limparErro('valor'); }}
+            erro={Boolean(erros.valor)}
+            accessibilityLabel="Valor total"
+          />
+        </FormField>
         <FormField label="Data" erro={erros.data} style={styles.coluna}>
           <DatePicker value={data} onChange={setData} invalid={Boolean(erros.data)} accessibilityLabel="Data da despesa" />
         </FormField>
@@ -196,16 +194,14 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
               {nomeDe(m)}
             </Text>
             {modo === 'igual' ? (
-              <Text style={styles.parte}>{Number.isNaN(total) ? '—' : moeda(porPessoa[m.usuario_id])}</Text>
+              <Text style={styles.parte}>{totalCentavos == null ? '—' : reais(porPessoa[m.usuario_id] ?? 0)}</Text>
             ) : (
-              <Input
-                value={valores[m.usuario_id]}
-                onChangeText={(t) => {
-                  setValores((atual) => ({ ...atual, [m.usuario_id]: t }));
+              <InputMoeda
+                centavos={valores[m.usuario_id]}
+                onChange={(c) => {
+                  setValores((atual) => ({ ...atual, [m.usuario_id]: c }));
                   limparErro('rateio');
                 }}
-                placeholder="0,00"
-                keyboardType="decimal-pad"
                 accessibilityLabel={`Valor de ${m.usuario?.nome}`}
                 erro={Boolean(erros.rateio)}
                 style={styles.campoParte}
@@ -215,7 +211,7 @@ export function DespesaForm({ membros, usuarioId, despesa, onSubmit, carregando 
         ))}
         {modo === 'personalizada' ? (
           <Text style={styles.soma}>
-            Soma {moeda(soma)} de {Number.isNaN(total) ? '—' : moeda(total)}
+            Soma {reais(soma)} de {totalCentavos == null ? '—' : reais(totalCentavos)}
           </Text>
         ) : null}
       </View>
