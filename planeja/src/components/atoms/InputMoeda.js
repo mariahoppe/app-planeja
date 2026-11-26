@@ -4,7 +4,7 @@ import { editarCentavos, formatarCentavos } from '../../utils/moeda';
 import { Input } from './Input';
 
 /**
- * Campo de valor em dinheiro: só aceita dígitos e preenche pelos centavos 
+ * Campo de valor em dinheiro: só aceita dígitos e preenche pelos centavos.
  */
 export function InputMoeda({ centavos, onChange, onFocus, ...props }) {
   const substituir = useRef(false);

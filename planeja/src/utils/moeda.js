@@ -1,5 +1,5 @@
-// Valores em dinheiro guardados como centavos inteiros
-// Inteiro não tem problema de vírgula/ponto nem de arredondamento
+// Valores em dinheiro guardados como centavos inteiros.
+// Inteiro não tem problema de vírgula/ponto nem de arredondamento.
 
 export const MAX_DIGITOS = 10;
 
@@ -31,8 +31,9 @@ export function editarCentavos(atual, antes, depois, substituir) {
   ) {
     fim += 1;
   }
+  const removido = antes.slice(ini, antes.length - fim);
   const digitados = depois.slice(ini, depois.length - fim).replace(/\D/g, '');
-  const apagados = antes.slice(ini, antes.length - fim).replace(/\D/g, '').length;
+  const apagados = removido.replace(/\D/g, '').length;
 
   if (digitados) {
     const base = substituir || atual == null ? '' : String(atual);
@@ -41,6 +42,7 @@ export function editarCentavos(atual, antes, depois, substituir) {
     return juntos ? Number(juntos) : null;
   }
 
+  if (!removido) return atual; // só entrou vírgula, ponto ou letra: ignora a tecla
   if (substituir || atual == null || !/\d/.test(depois)) return null;
   const restante = Math.floor(atual / 10 ** Math.max(1, apagados));
   return restante > 0 ? restante : null;
