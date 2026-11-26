@@ -25,8 +25,9 @@ const ESPERA_BUSCA_MS = 300;
  * Dicas da comunidade (RF-10): busca por destino (cidade ou país, sem acento e sem
  * maiúsculas, feita pela API) e filtro nacional/internacional. Sem busca, as mais recentes.
  * Vindo do Ranking (RF-16), chega com route.params.filtro = { busca, escopo } e abre já filtrada.
+ * abas: vem do DicasTab e põe o seletor Dicas | Ranking no lugar do título.
  */
-export function DicasScreen({ route, navigation, seletor }) {
+export function DicasScreen({ route, navigation, abas }) {
   const filtroInicial = route.params?.filtro;
 
   const [busca, setBusca] = useState(filtroInicial?.busca ?? ''); // o que está escrito no campo
@@ -80,11 +81,13 @@ export function DicasScreen({ route, navigation, seletor }) {
   const filtrando = escopo !== 'todos';
 
   return (
-    <ScreenTemplate sobretitulo="Comunidade" titulo="Dicas" aoChegarNoFim={carregarMais}>
-      {seletor}
-
-      <Button titulo="+ Publicar dica" variante="primario" bloco onPress={() => publicar()} />
-
+    <ScreenTemplate
+      sobretitulo="Comunidade"
+      titulo="Dicas"
+      abas={abas}
+      direita={<Button titulo="+ Publicar" pequeno onPress={() => publicar()} />}
+      aoChegarNoFim={carregarMais}
+    >
       <View style={styles.buscaLinha}>
         <Input
           value={busca}

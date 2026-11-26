@@ -4,6 +4,7 @@ import { KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { colors, fonts } from '../../config/theme';
+import { AbasTitulo } from '../molecules/AbasTitulo';
 import { espacoParaBarraAbas } from '../organisms/BarraAbas';
 
 // Quantos pontos antes do fim a próxima página já começa a carregar.
@@ -13,6 +14,8 @@ const DISTANCIA_DO_FIM = 300;
  * Esqueleto das telas do Planeja: cabeçalho fixo (sobretítulo, título grande,
  * voltar e ação opcionais) e um corpo rolável. Nenhum dado mora aqui.
  * sobretitulo: texto pequeno acima do título (ex.: "Comunidade").
+ * abas: { opcoes, valor, onChange } — quando uma aba tem duas telas (ex.: Dicas | Ranking),
+ *   o título vira o seletor entre elas (AbasTitulo) e a marcada faz o papel do título.
  * direita: elemento à direita do título (ex.: um Button pequeno "Editar").
  * aoVoltar: quando informado, mostra "‹ Voltar" e chama a função ao tocar.
  * aoChegarNoFim: chamada quando a rolagem chega perto do fim (listas paginadas, RNF-04).
@@ -25,7 +28,7 @@ const DISTANCIA_DO_FIM = 300;
  * de ponta a ponta e não encolhe a janela, o KeyboardAvoidingView com padding
  * encolhe a área da rolagem, que mantém o campo em foco à vista.
  */
-export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChegarNoFim, aoAtualizar, children }) {
+export function ScreenTemplate({ sobretitulo, titulo, abas, direita, aoVoltar, aoChegarNoFim, aoAtualizar, children }) {
   const margens = useSafeAreaInsets();
   const [atualizando, setAtualizando] = useState(false);
 
@@ -57,9 +60,13 @@ export function ScreenTemplate({ sobretitulo, titulo, direita, aoVoltar, aoChega
         <View style={styles.linhaTitulo}>
           <View style={styles.titulos}>
             {sobretitulo ? <Text style={styles.sobretitulo}>{sobretitulo}</Text> : null}
-            <Text style={styles.titulo} accessibilityRole="header">
-              {titulo}
-            </Text>
+            {abas ? (
+              <AbasTitulo opcoes={abas.opcoes} valor={abas.valor} onChange={abas.onChange} />
+            ) : (
+              <Text style={styles.titulo} accessibilityRole="header">
+                {titulo}
+              </Text>
+            )}
           </View>
           {direita}
         </View>
