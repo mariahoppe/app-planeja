@@ -1,7 +1,6 @@
 import { useFocusEffect } from '@react-navigation/native';
 import { useCallback, useEffect, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
 
 import { Button } from '../../../components/atoms/Button';
 import { Input } from '../../../components/atoms/Input';
@@ -24,6 +23,8 @@ const ESPERA_BUSCA_MS = 300;
 /**
  * Dicas da comunidade (RF-10): busca por destino (cidade ou país, sem acento e sem
  * maiúsculas, feita pela API) e filtro nacional/internacional. Sem busca, as mais recentes.
+ * O filtro fica sempre à vista, embaixo da busca (no protótipo, abria por um ícone): assim
+ * ninguém fica com a lista filtrada sem perceber, por exemplo ao chegar do Ranking.
  * Vindo do Ranking (RF-16), chega com route.params.filtro = { busca, escopo } e abre já filtrada.
  * abas: vem do DicasTab e põe o seletor Dicas | Ranking no lugar do título.
  */
@@ -33,7 +34,6 @@ export function DicasScreen({ route, navigation, abas }) {
   const [busca, setBusca] = useState(filtroInicial?.busca ?? ''); // o que está escrito no campo
   const [termo, setTermo] = useState(filtroInicial?.busca?.trim() ?? ''); // o que já foi pesquisado
   const [escopo, setEscopo] = useState(filtroInicial?.escopo ?? 'todos');
-  const [filtroAberto, setFiltroAberto] = useState(false);
 
   // RF-16: cada toque num destino do Ranking traz um filtro novo, mesmo com a aba já aberta.
   useEffect(() => {
@@ -42,7 +42,6 @@ export function DicasScreen({ route, navigation, abas }) {
     setBusca(filtro.busca);
     setTermo(filtro.busca.trim());
     setEscopo(filtro.escopo ?? 'todos');
-    setFiltroAberto(false);
   }, [route.params?.filtro]);
 
   // Cada letra reinicia a espera; só quando a pessoa para de digitar o termo muda.
@@ -68,17 +67,10 @@ export function DicasScreen({ route, navigation, abas }) {
 
   const publicar = (cidade) => navigation.navigate('DicaForm', cidade ? { cidade } : undefined);
 
-  function escolherEscopo(valor) {
-    setEscopo(valor);
-    setFiltroAberto(false);
-  }
-
   function limpar() {
     setBusca('');
     setTermo('');
   }
-
-  const filtrando = escopo !== 'todos';
 
   return (
     <ScreenTemplate
@@ -88,38 +80,16 @@ export function DicasScreen({ route, navigation, abas }) {
       direita={<Button titulo="+ Publicar" pequeno onPress={() => publicar()} />}
       aoChegarNoFim={carregarMais}
     >
-      <View style={styles.buscaLinha}>
-        <Input
-          value={busca}
-          onChangeText={setBusca}
-          placeholder="Buscar destino · ex: Paris"
-          returnKeyType="search"
-          autoCorrect={false}
-          accessibilityLabel="Buscar destino"
-          style={styles.busca}
-        />
-        <Pressable
-          onPress={() => setFiltroAberto(!filtroAberto)}
-          accessibilityRole="button"
-          accessibilityLabel="Filtrar por escopo"
-          accessibilityState={{ expanded: filtroAberto }}
-          style={({ pressed }) => [styles.filtro, filtrando && styles.filtroLigado, pressed && styles.pressionado]}
-        >
-          <Svg
-            width={17}
-            height={17}
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke={filtrando ? colors.acento : colors.suave}
-            strokeWidth={2}
-            strokeLinecap="round"
-          >
-            <Path d="M4 5h16M7 12h10M10 19h4" />
-          </Svg>
-        </Pressable>
-      </View>
+      <Input
+        value={busca}
+        onChangeText={setBusca}
+        placeholder="Buscar destino · ex: Paris"
+        returnKeyType="search"
+        autoCorrect={false}
+        accessibilityLabel="Buscar destino"
+      />
 
-      {filtroAberto ? <SeletorSegmentado opcoes={FILTROS} valor={escopo} onChange={escolherEscopo} /> : null}
+      <SeletorSegmentado opcoes={FILTROS} valor={escopo} onChange={setEscopo} />
 
       {erro || dicas === null ? (
         <EstadoCarga carregando={!erro} erro={erro} onTentarDeNovo={carregar} />
@@ -161,19 +131,6 @@ export function DicasScreen({ route, navigation, abas }) {
 }
 
 const styles = StyleSheet.create({
-  buscaLinha: { flexDirection: 'row', alignItems: 'stretch', gap: 8 },
-  busca: { flex: 1 },
-  filtro: {
-    width: 44,
-    borderWidth: 1,
-    borderColor: colors.linha,
-    borderRadius: 10,
-    backgroundColor: colors.branco,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  filtroLigado: { backgroundColor: colors.acentoSuave, borderColor: colors.acentoSuave },
-  pressionado: { opacity: 0.85 },
   resumo: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   resumoTexto: { fontFamily: fonts.corpo, fontSize: 11, color: colors.suave },
   limpar: {
