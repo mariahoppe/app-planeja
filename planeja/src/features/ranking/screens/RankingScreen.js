@@ -24,8 +24,10 @@ const ESCOPOS = [
  * escopo — países (RF-13) e cidades (RF-14) — sob o filtro nacional/internacional
  * (RF-15), pelas médias das avaliações da comunidade.
  * Tocar num destino abre a aba Dicas já filtrada por ele (RF-16).
+ * abas: vem do DicasTab e põe o seletor Dicas | Ranking no lugar do título.
+ * O sobretítulo é "Comunidade", como em Dicas: "custo-benefício" fica só no cartão do 1º lugar.
  */
-export function RankingScreen({ navigation, seletor }) {
+export function RankingScreen({ navigation, abas }) {
   const [escopo, setEscopo] = useState('internacional');
   const [ranking, setRanking] = useState(null); // { escopo, paises, cidades }
   const [qtdMinhas, setQtdMinhas] = useState(null);
@@ -60,11 +62,12 @@ export function RankingScreen({ navigation, seletor }) {
   const cidades = atualizado ? ranking.cidades : [];
 
   return (
-    <ScreenTemplate sobretitulo="Custo-benefício" titulo="Ranking">
-      {seletor}
-
-      <Button titulo="+ Avaliar destino" variante="primario" bloco onPress={avaliar} />
-
+    <ScreenTemplate
+      sobretitulo="Comunidade"
+      titulo="Ranking"
+      abas={abas}
+      direita={<Button titulo="+ Avaliar" pequeno onPress={avaliar} />}
+    >
       <SeletorSegmentado opcoes={ESCOPOS} valor={escopo} onChange={setEscopo} />
 
       {erro ? (
